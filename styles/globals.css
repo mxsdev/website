@@ -1,9 +1,25 @@
+/* @import url("https://use.typekit.net/iyk6tcl.css"); */
+/* @import url('https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap'); */
+/* @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@1,800;1,900&display=swap'); */
+@import url("https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,400;1,800&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  /* font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif; */
+  @apply font-body bg-bg text-fg;
+  /* z-index: -10; */
+}
+
+body,
+body > div,
+html {
+  height: 100%;
 }
 
 a {
@@ -11,6 +27,85 @@ a {
   text-decoration: none;
 }
 
+.invisible {
+  visibility: hidden;
+}
+
+.example-div {
+  display: inline-block;
+  /* width: 100px; */
+  /* height: 100px; */
+  border: 1px solid black;
+  position: relative;
+  background: #fff;
+  box-sizing: content-box;
+}
+.example-div::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -5px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  background: red;
+  border: 1px solid black;
+}
 * {
   box-sizing: border-box;
+}
+
+@keyframes slide {
+  0% {
+    transform: translate(0%, 0%);
+  }
+
+  20% {
+    transform: translate(0%, 0%);
+  }
+
+  80% {
+    transform: translate(70%, 0%);
+  }
+
+  100% {
+    transform: translate(70%, 0%);
+  }
+}
+
+@keyframes slide2 {
+  0% {
+    transform: translate(0%, 0%);
+  }
+
+  20% {
+    transform: translate(0%, 0%);
+  }
+
+  80% {
+    transform: translate(-70%, 0%);
+  }
+
+  100% {
+    transform: translate(-70%, 0%);
+  }
+}
+
+.triangle1 {
+  /* transform: translate(70%, 0%); */
+  animation-name: slide;
+  animation-duration: 2.5s;
+  animation-timing-function: cubic-bezier(0.91, 0.015, 0.33, 0.96);
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
+}
+
+.triangle2 {
+  /* transform: translate(70%, 0%); */
+  animation-name: slide2;
+  animation-delay: 0.4s;
+  animation-duration: 2.5s;
+  animation-timing-function: cubic-bezier(0.91, 0.015, 0.33, 0.96);
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
 }
