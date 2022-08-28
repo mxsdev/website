@@ -55,57 +55,57 @@ a {
   box-sizing: border-box;
 }
 
-@keyframes slide {
-  0% {
-    transform: translate(0%, 0%);
-  }
-
-  20% {
-    transform: translate(0%, 0%);
-  }
-
-  80% {
-    transform: translate(70%, 0%);
-  }
-
-  100% {
-    transform: translate(70%, 0%);
-  }
-}
-
-@keyframes slide2 {
-  0% {
-    transform: translate(0%, 0%);
-  }
-
-  20% {
-    transform: translate(0%, 0%);
-  }
-
-  80% {
-    transform: translate(-70%, 0%);
-  }
-
-  100% {
-    transform: translate(-70%, 0%);
-  }
-}
-
-.triangle1 {
-  /* transform: translate(70%, 0%); */
-  animation-name: slide;
-  animation-duration: 2.5s;
-  animation-timing-function: cubic-bezier(0.91, 0.015, 0.33, 0.96);
-  animation-direction: alternate;
-  animation-iteration-count: infinite;
-}
-
-.triangle2 {
-  /* transform: translate(70%, 0%); */
-  animation-name: slide2;
-  animation-delay: 0.4s;
-  animation-duration: 2.5s;
-  animation-timing-function: cubic-bezier(0.91, 0.015, 0.33, 0.96);
-  animation-direction: alternate;
-  animation-iteration-count: infinite;
-}
+// @keyframes slide {
+//   0% {
+//     transform: translate(0%, 0%);
+//   }
+//
+//   20% {
+//     transform: translate(0%, 0%);
+//   }
+//
+//   80% {
+//     transform: translate(70%, 0%);
+//   }
+//
+//   100% {
+//     transform: translate(70%, 0%);
+//   }
+// }
+//
+// @keyframes slide2 {
+//   0% {
+//     transform: translate(0%, 0%);
+//   }
+//
+//   20% {
+//     transform: translate(0%, 0%);
+//   }
+//
+//   80% {
+//     transform: translate(-70%, 0%);
+//   }
+//
+//   100% {
+//     transform: translate(-70%, 0%);
+//   }
+// }
+//
+// .triangle1 {
+//   /* transform: translate(70%, 0%); */
+//   animation-name: slide;
+//   animation-duration: 2.5s;
+//   animation-timing-function: cubic-bezier(0.91, 0.015, 0.33, 0.96);
+//   animation-direction: alternate;
+//   animation-iteration-count: infinite;
+// }
+//
+// .triangle2 {
+//   /* transform: translate(70%, 0%); */
+//   animation-name: slide2;
+//   animation-delay: 0.4s;
+//   animation-duration: 2.5s;
+//   animation-timing-function: cubic-bezier(0.91, 0.015, 0.33, 0.96);
+//   animation-direction: alternate;
+//   animation-iteration-count: infinite;
+// }

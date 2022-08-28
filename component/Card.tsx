@@ -36,7 +36,7 @@ const InternalCard = ({
             ["invisible"]: hidden,
             ["absolute"]: !hidden,
             ["-top-1.5 -left-1.5"]: secondary,
-            ["peer-hover:-translate-y-1  duration-300"]: secondary,
+            ["peer-hover:-translate-y-1 duration-300"]: secondary,
             ["peer hover:-translate-y-0.5 "]: primary,
             ["transition"]: primary || secondary,
             ["delay-75"]: secondary,
