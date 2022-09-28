@@ -1,9 +1,10 @@
-import { FaGithub, FaYoutube } from "react-icons/fa"
+import { FaGithub, FaTwitter, FaYoutube } from "react-icons/fa"
 
 const icsize = 25
 const icons = [
   { Icon: FaGithub, href: "https://github.com/mxsdev", key: "github" },
-  { Icon: FaYoutube, href: "", key: "yt" },
+  { Icon: FaTwitter, href: "https://twitter.com/maxStoumen", key: "twitter" },
+  { Icon: FaYoutube, href: "https://www.youtube.com/channel/UCODvGzoB_aMDRlrDttkmCVQ", key: "yt" },
 ]
 
 export const SocialLinks = (props: {}) => {
