@@ -1,3 +1,6 @@
+"use client"
+
+import cl from "classnames"
 import React, { useEffect, useRef } from "react"
 import BezierEasing from "bezier-easing"
 import { waitBefore, waitCycle } from "../util/anim"
@@ -31,7 +34,7 @@ const delay = 0.35
 const easing1 = BezierEasing(0.53, 0.09, 0.41, 1.01)
 const easing2 = BezierEasing(0.68, 0.04, 0.41, 1.01)
 
-export const MXSHeader = (props: {}) => {
+export const MXSHeader = (props: { className?: string }) => {
   const svg = useRef<SVGSVGElement>(null)
   const poly1 = useRef<SVGPolygonElement>(null)
   const poly2 = useRef<SVGPolygonElement>(null)
@@ -42,33 +45,35 @@ export const MXSHeader = (props: {}) => {
     let lastReversed = false
 
     const animate: FrameRequestCallback = (timestamp) => {
-      if (start === undefined) {
-        start = timestamp
-      }
-
-      if (previousTimestamp != timestamp) {
-        const t = (timestamp - start) / 1000
-
-        const reversed = Math.floor(t / (duration + wait)) % 2 == 1
-
-        const fac1 = easing1(waitCycle(wait, duration)(t))
-        const xfac1 = fac1 * (width - paddingX - 20)
-
-        const fac2 = easing2(waitBefore(delay, waitCycle(wait, duration))(t))
-        const xfac2 = -fac2 * (width - paddingX - 20)
-
-        const points1 = applyToPoints(poly1Pts, translateX(xfac1))
-        const points2 = applyToPoints(poly2Pts, translateX(xfac2))
-
-        assignPoints(svg.current!, poly1.current!.points, points1)
-        assignPoints(svg.current!, poly2.current!.points, points2)
-
-        if (reversed !== lastReversed) {
-          const parentNode = poly1.current!.parentNode!
-          parentNode.appendChild(parentNode.firstChild!)
+      if(svg.current && poly1.current && poly2.current) {
+        if (start === undefined) {
+          start = timestamp
         }
 
-        lastReversed = reversed
+        if (previousTimestamp != timestamp) {
+            const t = (timestamp - start) / 1000
+    
+            const reversed = Math.floor(t / (duration + wait)) % 2 == 1
+    
+            const fac1 = easing1(waitCycle(wait, duration)(t))
+            const xfac1 = fac1 * (width - paddingX - 20)
+    
+            const fac2 = easing2(waitBefore(delay, waitCycle(wait, duration))(t))
+            const xfac2 = -fac2 * (width - paddingX - 20)
+    
+            const points1 = applyToPoints(poly1Pts, translateX(xfac1))
+            const points2 = applyToPoints(poly2Pts, translateX(xfac2))
+    
+            assignPoints(svg.current, poly1.current.points, points1)
+            assignPoints(svg.current, poly2.current.points, points2)
+    
+            if (reversed !== lastReversed) {
+              const parentNode = poly1.current!.parentNode!
+              parentNode.appendChild(parentNode.firstChild!)
+            }
+    
+            lastReversed = reversed
+          }
       }
 
       if (!cancelled) {
@@ -85,7 +90,7 @@ export const MXSHeader = (props: {}) => {
   }, [])
 
   return (
-    <svg className="mx-auto h-28" viewBox={`0 0 ${width} ${height}`} ref={svg}>
+    <svg className={cl(props.className)}viewBox={`0 0 ${width} ${height}`} ref={svg}>
       <g id="bg" mask="url(#knockout-text)">
         <rect width="100%" height="100%" className="fill-fg" />
       </g>

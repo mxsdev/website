@@ -1,3 +1,5 @@
+"use client"
+
 import { FaGithub, FaTwitter, FaYoutube } from "react-icons/fa"
 
 const icsize = 25
