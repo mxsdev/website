@@ -1,0 +1,5 @@
+// .root:not(:has(.link:hover)) .matched {
+
+.root:not(:hover) .matched {
+    @apply text-main;
+}
