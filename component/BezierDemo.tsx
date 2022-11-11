@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react"
 import { BezierContext, bezierMap } from "../adaptive-bezier/draw"
 import { BezierDrawConfig, CubicBezier } from "../adaptive-bezier/types"
+import { useBezier } from "../adaptive-bezier/useBezier"
 
 import { colors } from "../colors"
 
@@ -14,29 +15,12 @@ interface Props {
 
 export const BezierDemo: React.FunctionComponent<Props> = ({ width = 640, height = 480, ...props }) => {
     const ref = useRef<HTMLCanvasElement>(null)
-    const bezier = useRef<BezierContext>()
 
-    useEffect(() => {
-        if(!ref.current) return
-
-        const canvas = ref.current
-        const ctx = canvas.getContext("2d")
-
-        if(!ctx) return
-
-        const options = bezierConfigDefaults(props.options)
-
-        if(!bezier.current) {
-            bezier.current = new BezierContext(
-                canvas,
-                ctx,
-                defaultInitial(width, height),
-                options
-            )
-        } else {
-            bezier.current.updateConfig(options)
-        }
-    }, [props.options, width, height])
+    useBezier(
+        ref, 
+        bezierConfigDefaults(props.options),
+        defaultInitial(width, height)
+    )
     
     return (
         <canvas 

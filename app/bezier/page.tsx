@@ -4,6 +4,7 @@ import { BezierDemo } from "../../component/BezierDemo";
 const Page: NextPage = () => (
     <BezierDemo
         options={{
+            enableStroke: false
         }}
     />
 )
