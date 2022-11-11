@@ -7,29 +7,6 @@ import { slug } from "../../../util/slug"
 import { BsLink45Deg } from "react-icons/bs"
 import cl from "classnames"
 
-function headerComponent(Type: "h1"|"h2"|"h3"|"h4"|"h5"|"h6") {
-    const Header = (props: JSX.IntrinsicElements[typeof Type]) => {
-        const id = slug(props.children as string)
-        
-        return (
-            <a className={cl(styles[Type], styles.heading, "relative")} href={`#${id}`}>
-                <Type {...props} id={id} className={cl(props.className, styles['heading-text'])} />
-                <BsLink45Deg
-                    className={cl(
-                        "absolute",
-                        "top-[0.09em] left-[-1.4em]",
-                        "opacity-0 translate-y-2 transition-all",
-                        styles['header-link']
-                    )}
-                    size={"1.2em"}
-                />
-            </a>
-        ) 
-    }
-
-    return Header
-}
-
 const mdxComponents: MDXComponents = {
     "h1": headerComponent("h1"),
     "h2": headerComponent("h2"),
@@ -86,4 +63,27 @@ function formatDate(date: Date) {
         day: "numeric",
         month: "long",
     }).format(date)
+}
+
+function headerComponent(Type: "h1"|"h2"|"h3"|"h4"|"h5"|"h6") {
+    const Header = (props: JSX.IntrinsicElements[typeof Type]) => {
+        const id = slug(props.children as string)
+        
+        return (
+            <a className={cl(styles[Type], styles.heading, "relative")} href={`#${id}`}>
+                <Type {...props} id={id} className={cl(props.className, styles['heading-text'])} />
+                <BsLink45Deg
+                    className={cl(
+                        "absolute",
+                        "top-[0.09em] left-[-1.4em]",
+                        "opacity-0 translate-y-2 transition-all",
+                        styles['header-link']
+                    )}
+                    size={"1.2em"}
+                />
+            </a>
+        ) 
+    }
+
+    return Header
 }
