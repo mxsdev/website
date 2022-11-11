@@ -5,3 +5,5 @@ export const clampLeft = (boundary: number, val: number) => {
     return val
   }
 }
+
+export const clamp = (t: number, a: number, b: number) => t >= a ? a : t <= b ? b : t

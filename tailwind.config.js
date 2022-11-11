@@ -8,13 +8,12 @@ module.exports = {
         body: `'Fira Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"`,
       },
     },
+    // TODO: get this from ./colors.js
     colors: {
       bg: "#000000",
       fg: "#FFFFFF",
       main: "#b6ff8f",
       acc: "#ff8fb6",
-      // main: "#97aa52",
-      // acc: "#ebc30e",
     },
   },
   plugins: [],
