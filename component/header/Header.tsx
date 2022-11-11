@@ -1,10 +1,21 @@
+"use client"
+
 import Link from "next/link"
+import { useScrollBreakpoint } from "../../util/useScrollBreakpoint"
 import { MXSHeader } from "../MXSHeader"
 import { HeaderLinks } from "./HeaderLinks"
+import cl from "classnames"
 
 export function Header() {
+    const scrollBp = useScrollBreakpoint(10)
+
     return (
-        <div className={"flex flex-row items-center justify-between w-full p-2 mt-2"}>
+        <div 
+            className={cl(
+                "flex flex-row items-center justify-between p-2 sticky top-3 transition-all duration-300", 
+                { ["-translate-y-full opacity-0"]: scrollBp }
+            )}
+        >
             <Link href="/">
                 <MXSHeader className={"h-8"} />
             </Link>
