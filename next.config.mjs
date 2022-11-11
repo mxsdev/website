@@ -1,10 +1,12 @@
 import MDX from "@next/mdx"
+import rehypeKatex from 'rehype-katex'
+import remarkMath from 'remark-math'
 
 const withMDX = MDX({
   extension: /\.mdx?$/,
   options: {
-    remarkPlugins: [],
-    rehypePlugins: [],
+    remarkPlugins: [remarkMath],
+    rehypePlugins: [rehypeKatex],
     // If you use `MDXProvider`, uncomment the following line.
     // providerImportSource: "@mdx-js/react",
     providerImportSource: undefined

@@ -1,4 +1,5 @@
 import styles from "./layout.module.scss"
+import "katex/dist/katex.min.css"
 
 function BlogLayout({ children }: { children: React.ReactNode }) {
     return (
