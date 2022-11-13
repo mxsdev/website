@@ -17,7 +17,7 @@ export const SocialLinks = (props: {}) => {
           <a
             href={href}
             key={key}
-            className="hover:text-main transition-colors duration-75 hover:shadow-lg shadow-main"
+            className="hover:text-main transition-all hover:-translate-y-[2px] duration-75 hover:shadow-lg shadow-main"
           >
             <Icon size={icsize} />
           </a>
