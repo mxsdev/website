@@ -1,8 +1,12 @@
+import { facBetween, mult2 } from './../util/math';
 import { BezierDrawConfig, CubicBezier, Point } from './types';
 import { beziercurvature, bezierPointsT } from "./sample"
 import { bezierConfigDefaults } from './config';
 import { mix } from "color2k"
 import { clamp } from '../util/math';
+import { call } from '../util/functional';
+
+type EventFunc<K extends keyof HTMLElementEventMap> = (this: HTMLCanvasElement, ev: HTMLElementEventMap[K]) => any
 
 export class BezierContext {
     controlPoints: CubicBezier<CanvasPoint>
@@ -83,7 +87,7 @@ export class BezierContext {
     
         if(enableBezierPoints) {
             bezierPts.forEach(([p, t]) => {
-                const curvature = Math.abs(1 / beziercurvature(t, ...bezier))
+                const curvature = Math.abs(1 / beziercurvature(t, bezier))
         
                 const minCurvature = 2
                 const maxCurvature = 300
@@ -96,9 +100,23 @@ export class BezierContext {
         }
     }
 
+    private listenerClear: (() => void)[] = []
+
+    private addListener<K extends keyof HTMLElementEventMap>(key: K, func: EventFunc<K>) {
+        this.canvas.addEventListener(key, func)
+        this.listenerClear.push(() => this.canvas.removeEventListener(key, func))
+    }
+
+    private clearListeners() {
+        this.listenerClear.forEach(x => x())
+        this.listenerClear = []
+    }
+
     private init() {
-        this.canvas.style.width = this.canvas.width + 'px'
-        this.canvas.style.height = this.canvas.height + 'px'
+        this.clearListeners()
+
+        const { width, height } = this.canvas
+
         this.canvas.width *= window.devicePixelRatio
         this.canvas.height *= window.devicePixelRatio
         
@@ -111,32 +129,34 @@ export class BezierContext {
         ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
 
         this.update()
+        
+        const getMousePos = ({ clientX, clientY }: MouseEvent): [ mouseX: number, mouseY: number ] => {
+            const bb = this.canvas.getBoundingClientRect()
+            
+            return mult2([
+                facBetween(clientX, bb.left, bb.right),
+                facBetween(clientY, bb.top, bb.bottom)
+            ], [width, height]);
+        }
 
-        const offsetX = this.canvas.getBoundingClientRect().left
-        const offsetY = this.canvas.getBoundingClientRect().top
-
-        this.canvas.addEventListener('mousedown', (event) => {
-            const mouseX = event.clientX - offsetX
-            const mouseY = event.clientY - offsetY
-
-            const active = this.controlPoints.find(p => p.isContaining(mouseX, mouseY))
+        this.addListener('mousedown', (event) => {
+            const active = this.controlPoints.find(call("isContaining", ...getMousePos(event)))
 
             if(active) {
                 active.startDrag()
             }
         })
 
-        this.canvas.addEventListener('mouseup', (event) => {
+        this.addListener('mouseup', (event) => {
             this.controlPoints.forEach(p => {
                 p.endDrag()
             })
         })
 
-        this.canvas.addEventListener('mousemove', (event) => {
-            const mouseX = event.clientX - offsetX
-            const mouseY = event.clientY - offsetY
+        this.addListener('mousemove', (event) => {
+            const [ mouseX, mouseY ] = getMousePos(event)
 
-            const active = this.controlPoints.find(p => p.isDragging())
+            const active = this.controlPoints.find(call("isDragging"))
             
             if(active) {
                 active.x = mouseX
@@ -153,6 +173,10 @@ export class BezierContext {
                 this.canvas.style.cursor = ""
             }
         })
+    }
+
+    public deinit() {
+        this.clearListeners()
     }
 }
 

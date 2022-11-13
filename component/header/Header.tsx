@@ -7,12 +7,12 @@ import { HeaderLinks } from "./HeaderLinks"
 import cl from "classnames"
 
 export function Header() {
-    const scrollBp = useScrollBreakpoint(10)
+    const scrollBp = useScrollBreakpoint(25)
 
     return (
         <div 
             className={cl(
-                "flex flex-row items-center justify-between p-2 sticky top-3 transition-all duration-300", 
+                "flex flex-row items-center justify-between p-2 py-4 sticky top-4 transition-all duration-300", 
                 { ["-translate-y-full opacity-0"]: scrollBp }
             )}
         >

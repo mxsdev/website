@@ -5,6 +5,7 @@ const Page: NextPage = () => (
     <BezierDemo
         options={{
             enableStroke: false
+            // enableBezierPoints: false
         }}
     />
 )

@@ -1,5 +1,6 @@
 "use client"
 
+import { darken, saturate } from "color2k"
 import { useEffect, useRef } from "react"
 import { BezierContext, bezierMap } from "../adaptive-bezier/draw"
 import { BezierDrawConfig, CubicBezier } from "../adaptive-bezier/types"
@@ -13,7 +14,7 @@ interface Props {
     height?: number
 }
 
-export const BezierDemo: React.FunctionComponent<Props> = ({ width = 640, height = 480, ...props }) => {
+export const BezierDemo: React.FunctionComponent<Props> = ({ width = 480, height = 480, ...props }) => {
     const ref = useRef<HTMLCanvasElement>(null)
 
     useBezier(
@@ -27,7 +28,10 @@ export const BezierDemo: React.FunctionComponent<Props> = ({ width = 640, height
             width={width}
             height={height}
             ref={ref}
-            className="border-2 border-fg rounded-md"
+            className="border-2 border-fg mx-auto block"
+            style={{
+                maxWidth: width
+            }}
         ></canvas>
     )
 }
@@ -40,8 +44,8 @@ function bezierConfigDefaults(config: Partial<BezierDrawConfig> = {}): BezierDra
         controlPointRadius: enableStroke ? Math.max(7, strokeWidth * 1.1) : 7,
         controlPointColor: "#FFFFFF",
 
-        bezierPointRadius: 2.5,
-        bezierPointColor: [ colors.main, colors.acc ],
+        bezierPointRadius: 2,
+        bezierPointColor: [ colors.main, darken(colors.acc, 0.2) ],
         enableBezierPoints: true,
 
         strokeWidth,

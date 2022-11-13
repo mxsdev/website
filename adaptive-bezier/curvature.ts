@@ -1,8 +1,7 @@
-/* const findRoots = require("durand-kerner") */
 import { allRoots } from "flo-poly"
-import { Point } from "./types"
+import { CubicBezier, Point } from "./types"
 
-export function curvatureMaxima(p1: Point, p2: Point, p3: Point, p4: Point): number[] {
+export function curvatureMaxima([ p1, p2, p3, p4 ]: CubicBezier): number[] {
     const [x0, y0] = p1
     const [x1, y1] = p2
     const [x2, y2] = p3
