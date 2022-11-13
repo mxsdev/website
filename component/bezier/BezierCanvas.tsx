@@ -2,19 +2,20 @@
 
 import { darken, saturate } from "color2k"
 import { useEffect, useRef } from "react"
-import { BezierContext, bezierMap } from "../adaptive-bezier/draw"
-import { BezierDrawConfig, CubicBezier } from "../adaptive-bezier/types"
-import { useBezier } from "../adaptive-bezier/useBezier"
+import { BezierContext, bezierMap } from "../../adaptive-bezier/draw"
+import { BezierDrawConfig, CubicBezier } from "../../adaptive-bezier/types"
+import { useBezier } from "../../adaptive-bezier/useBezier"
 
-import { colors } from "../colors"
+import { colors } from "../../colors"
 
 interface Props {
     options?: Partial<BezierDrawConfig>
+    className?: string
     width?: number
     height?: number
 }
 
-export const BezierDemo: React.FunctionComponent<Props> = ({ width = 480, height = 480, ...props }) => {
+export const BezierCanvas: React.FunctionComponent<Props> = ({ width = 480, height = 480, className, ...props }) => {
     const ref = useRef<HTMLCanvasElement>(null)
 
     useBezier(
@@ -24,15 +25,17 @@ export const BezierDemo: React.FunctionComponent<Props> = ({ width = 480, height
     )
     
     return (
-        <canvas 
-            width={width}
-            height={height}
-            ref={ref}
-            className="border-2 border-fg mx-auto block"
-            style={{
-                maxWidth: width
-            }}
-        ></canvas>
+        <>
+            <canvas 
+                width={width}
+                height={height}
+                ref={ref}
+                className={className}
+                style={{
+                    maxWidth: width
+                }}
+            ></canvas>
+        </>
     )
 }
 
@@ -41,7 +44,7 @@ function bezierConfigDefaults(config: Partial<BezierDrawConfig> = {}): BezierDra
     const enableStroke = config.enableStroke ?? true
 
     return {
-        controlPointRadius: enableStroke ? Math.max(7, strokeWidth * 1.1) : 7,
+        controlPointRadius: enableStroke ? Math.max(7, strokeWidth * 1.05) : 7,
         controlPointColor: "#FFFFFF",
 
         bezierPointRadius: 2,

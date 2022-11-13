@@ -42,6 +42,11 @@ export class BezierContext {
             controlPointRadius,
             controlPointColor,
         } = this.options
+
+        this.controlPoints.forEach(pt => {
+            pt.radius = controlPointRadius
+            pt.color = controlPointColor
+        })
         
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     

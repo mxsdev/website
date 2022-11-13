@@ -1,13 +1,11 @@
-import { NextPage } from "next";
-import { BezierDemo } from "../../component/BezierDemo";
+"use client"
 
-const Page: NextPage = () => (
-    <BezierDemo
-        options={{
-            enableStroke: false
-            // enableBezierPoints: false
-        }}
-    />
-)
+import { NextPage } from "next"
+import { BezierDemo } from "../../component/bezier/BezierDemo"
+
+const Page: NextPage = () => {
+    return <BezierDemo />
+}
+
 
 export default Page
