@@ -1,5 +1,5 @@
 import { ThickArrowDownIcon } from "@radix-ui/react-icons";
-import { mat4, ReadonlyMat4, ReadonlyVec4, vec4 } from "gl-matrix"
+import { mat4, ReadonlyMat4, ReadonlyVec2, ReadonlyVec4, vec4 } from "gl-matrix"
 
 export class ShaderProgram {
     private program: WebGLProgram
@@ -75,6 +75,13 @@ export class ShaderProgram {
 
     setVec4(name: string, value: ReadonlyVec4) {
         this.gl.uniform4fv(
+            this.uniformLocation(name),
+            value
+        )
+    }
+
+    setVec2(name: string, value: ReadonlyVec2) {
+        this.gl.uniform2fv(
             this.uniformLocation(name),
             value
         )

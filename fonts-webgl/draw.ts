@@ -1,8 +1,9 @@
-import { mat4, ReadonlyMat4, vec3 } from "gl-matrix";
+import { mat4, ReadonlyMat4, vec2, vec3, vec4 } from "gl-matrix";
 import { off } from "process";
 import { BsSkipStartCircleFill } from "react-icons/bs";
 import { bezierPointsAntigrain } from "../adaptive-bezier/sample";
 import { Point } from "../adaptive-bezier/types";
+import { fontMaskVertSrc, fontMaskFragSrc, fontShadeVertSrc, fontShadeFragSrc } from "../component/fonts-webgl/shaders";
 import { compareFonts, getCharGlyph, getGlyphInfo, getGlyphPath, GlyphId, glyphScaleFac, ParsedFont, parseGlyphPath } from "../util/font";
 import { ShaderProgram } from "../util/gl/shader";
 
@@ -17,16 +18,20 @@ export class FontRendererGL {
 
     private screenVAO: WebGLVertexArrayObject
     private screenVBO: WebGLBuffer
+
+    private maskShader: ShaderProgram
+    private fillShader: ShaderProgram
     
     constructor(
         private gl: WebGL2RenderingContext, 
-        private maskShader: ShaderProgram,
-        private fillShader: ShaderProgram,
         private font: ParsedFont,
         private fontSize: number = 40,
     ) { 
         console.log(font)
         this.populateGlyphCache()
+
+        this.maskShader = new ShaderProgram(gl, fontMaskVertSrc, fontMaskFragSrc)
+        this.fillShader = new ShaderProgram(gl, fontShadeVertSrc, fontShadeFragSrc)
 
         this.screenVAO = gl.createVertexArray()!
         this.screenVBO = gl.createBuffer()!
@@ -53,7 +58,7 @@ export class FontRendererGL {
     }
 
     setFont(font: ParsedFont) {
-        const repopulate = compareFonts(this.font, font)
+        const repopulate = !compareFonts(this.font, font)
 
         this.font = font
 
@@ -72,13 +77,22 @@ export class FontRendererGL {
         return glyphScaleFac(this.font, ub ? Math.ceil(this.fontSize) : this.fontSize )
     }
 
-    drawString(content: string, projection: ReadonlyMat4, maxWidth = Infinity, transform?: mat4) {
+    drawString(
+        content: string,
+        projection: ReadonlyMat4, 
+        width: number,
+        height: number,
+        maxWidth = Infinity, 
+        elapsedSeconds: number,
+        col1: vec4 = vec4.fromValues(1.0, 1.0, 1.0, 1.0),
+        col2: vec4 = vec4.fromValues(1.0, 1.0, 1.0, 1.0),
+        transform?: mat4,
+    ) {
         const modelBase = mat4.create()
 
         const sf = this.getScaleFac();
         const lineHeight = this.font.head.yMax
 
-        // mat4.translate(modelBase, modelBase, vec3.fromValues(0, lineHeight, 0))
         mat4.scale(modelBase, modelBase, vec3.fromValues(1/sf, -1/sf, 1))
 
         if(transform) {
@@ -96,6 +110,8 @@ export class FontRendererGL {
             xoffs = 0
             yoffs += lineHeight
         }
+
+        let charID = 0;
 
         for(const word of content.split(" ")) {
             if(word === "") {
@@ -125,7 +141,7 @@ export class FontRendererGL {
     
                 if(!glyphInfo || !glyphBuffers) continue
     
-                const { aWidth } = glyphInfo
+                const { aWidth, glyf: { xMax, xMin, yMax, yMin } } = glyphInfo
                 const { VAO, polys } = glyphBuffers
     
                 // render
@@ -136,25 +152,30 @@ export class FontRendererGL {
                         this.gl.stencilFunc(this.gl.NEVER, 0, 0xFF)
                         this.gl.stencilOp(this.gl.INVERT, this.gl.INVERT, this.gl.INVERT)
     
+                        const model = mat4.create();
+
+                        mat4.mul(model, model, modelBase)
+                        mat4.translate(model, model, vec3.fromValues(xoffs, -yoffs, 0))
+
+                        this.gl.bindAttribLocation(this.maskShader.id, 0, "aPos")
+                        this.maskShader.setMat4("projection", projection)
+                        this.maskShader.setMat4("model", model)
+                        this.maskShader.setFloat("time", elapsedSeconds)
+                        this.maskShader.setInt("charID", charID++)
+                        this.maskShader.setVec2("origin", vec2.fromValues((xMin + xMax)/1, (yMin + yMax)/2))
+
                         for(const [i, l] of polys) {
-                            const model = mat4.create();
-    
-                            mat4.mul(model, model, modelBase)
-                            mat4.translate(model, model, vec3.fromValues(xoffs, -yoffs, 0))
-    
-                            this.gl.bindAttribLocation(this.maskShader.id, 0, "aPos")
-                            this.maskShader.setMat4("projection", projection)
-                            this.maskShader.setMat4("model", model)
-        
                             this.gl.drawArrays(this.gl.TRIANGLE_FAN, i, l)
                         }
                     this.gl.bindVertexArray(null)
     
+                    // TODO: make this a single render call
                     this.fillShader.use()
-                    // fillShader.setInt("ww", width)
-                    // fillShader.setInt("wh", height)
-                    // fillShader.setVec4("col1", colorVec4(colors.main))
-                    // fillShader.setVec4("col2", colorVec4(colors.acc))
+                    this.fillShader.setInt("ww", width)
+                    this.fillShader.setInt("wh", height)
+                    this.fillShader.setVec4("col1", col1)
+                    this.fillShader.setVec4("col2", col2)
+                    this.fillShader.setFloat("time", elapsedSeconds)
                     this.gl.bindVertexArray(this.screenVAO)
                         this.gl.bindAttribLocation(this.fillShader.id, 0, "aPos")
                         
@@ -174,6 +195,8 @@ export class FontRendererGL {
     }
 
     populateGlyphCache(glyphSet?: Set<GlyphId>) {
+        console.log("Populating glyph cache", this.font.name.fontFamily)
+
         if(!glyphSet) {
             glyphSet = new Set()
 
@@ -225,11 +248,7 @@ export class FontRendererGL {
                 {
                     const shapeData = new Float32Array(glyphBezierPts.flatMap(x => x))
     
-                    if(!originalVBO) {
-                        this.gl.bufferData(this.gl.ARRAY_BUFFER, shapeData, this.gl.STATIC_DRAW)
-                    } else {
-                        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, shapeData)
-                    }
+                    this.gl.bufferData(this.gl.ARRAY_BUFFER, shapeData, this.gl.STATIC_DRAW)
         
                     if(!originalVAO) {
                         this.gl.vertexAttribPointer(0, 2, this.gl.FLOAT, false, 2 * shapeData.BYTES_PER_ELEMENT, 0);

@@ -24,7 +24,9 @@ export interface ParsedFont {
     },
     glyf: (GlyfInfo|null)[],
     name: {
-        ID: string
+        ID: string,
+        fontFamily: string,
+        fontSubfamily: string,
     }
 }
 
@@ -42,8 +44,12 @@ export interface GlyphInfo {
     glyf: GlyfInfo,
 }
 
-export async function loadFont(url: string): Promise<ParsedFont> {
-    return await fetch("/font/times-new-roman.ttf")
+export function parseFont(buff: ArrayBuffer): ParsedFont {
+    return Typr.parse(buff)
+}
+
+export async function loadFont(url: string, init: RequestInit = { cache: "force-cache" }): Promise<ParsedFont> {
+    return await fetch("/font/times-new-roman.ttf", init)
         .then(res => res.arrayBuffer())
         .then(buff => Typr.parse(buff))
 }
