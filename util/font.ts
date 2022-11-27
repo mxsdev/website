@@ -1,16 +1,30 @@
 import { CubicBezier, Point } from './../adaptive-bezier/types';
 import { Typr, TyprU } from 'typr-ts';
 import assert from 'assert';
+import { isBuffer } from 'util';
 
 export type GlyphId = number & { readonly __glyphId: never }
 
-interface ParsedFont {
+type GlyfInfo = {
+    xMax: number,
+    xMin: number,
+    yMax: number,
+    yMin: number,
+}
+
+export interface ParsedFont {
     head: {
         unitsPerEm: number,
+        xMax: number, xMin: number,
+        yMax: number, yMin: number,    
     },
     hmtx: {
         aWidth: number[],
         lsBearing: number[],
+    },
+    glyf: (GlyfInfo|null)[],
+    name: {
+        ID: string
     }
 }
 
@@ -21,9 +35,11 @@ interface GlyphPath {
     crds: number[]
 }
 
-interface GlyphInfo {
+export interface GlyphInfo {
+    path: GlyphPath,
     aWidth: number,
     lsBearing: number,
+    glyf: GlyfInfo,
 }
 
 export async function loadFont(url: string): Promise<ParsedFont> {
@@ -36,14 +52,24 @@ export function getCharGlyph(font: ParsedFont, code: number): GlyphId {
     return TyprU.codeToGlyph(font, code)
 }
 
-export function getGlyphPath(font: ParsedFont, gid: GlyphId): GlyphPath {
+export function getGlyphPath(font: ParsedFont, gid: GlyphId): GlyphPath|null {
     return TyprU.glyphToPath(font, gid)
 }
 
-export function getGlyphInfo(font: ParsedFont, gid: GlyphId): GlyphInfo {
+export function getGlyphInfo(font: ParsedFont, gid: GlyphId): GlyphInfo|null {
+    const path = getGlyphPath(font, gid)
+
+    if(!path) {
+        return null
+    }
+
+    const glyf = font.glyf[gid]!
+
     return {
+        path,
         aWidth: font.hmtx.aWidth[gid],
         lsBearing: font.hmtx.lsBearing[gid],
+        glyf,  
     }
 }
 
@@ -168,4 +194,8 @@ export function parseGlyphPath(
 
 export function glyphScaleFac(font: ParsedFont, px: number) {
     return font.head.unitsPerEm / px
+}
+
+export function compareFonts(f1: ParsedFont, f2: ParsedFont) {
+    return f1.name.ID === f2.name.ID
 }

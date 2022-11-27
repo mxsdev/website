@@ -5,26 +5,28 @@ export const fontShadeFragSrc = glsl`
 
 precision highp float;
 
-uniform int ww;
-uniform int wh;
+// uniform int ww;
+// uniform int wh;
 
-uniform vec4 col1;
-uniform vec4 col2;
+// uniform vec4 col1;
+// uniform vec4 col2;
 
 out vec4 FragColor;
 
 void main()
 {
-    float x = gl_FragCoord.x / float(ww);
-    float y = gl_FragCoord.y / float(wh);
+    FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 
-    float fac = (x + y) / 2.0;
+    // float x = gl_FragCoord.x / float(ww);
+    // float y = gl_FragCoord.y / float(wh);
 
-    FragColor = mix(
-        col1,
-        col2,
-        fac
-    );
+    // float fac = (x + y) / 2.0;
+
+    // FragColor = mix(
+    //     col1,
+    //     col2,
+    //     fac
+    // );
 }
 `.trim()
 
