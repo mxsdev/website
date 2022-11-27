@@ -24,13 +24,16 @@ async function init(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement, fontR
     const fillShader = new ShaderProgram(gl, fontShadeVertSrc, fontShadeFragSrc)
     
     const fontRenderer = new FontRendererGL(
-        gl, getProjectionMatrix(width, height),
-        maskShader, fillShader, font
+        gl, maskShader, fillShader, font
     )
 
     fontRendererRef.current = fontRenderer
 
-    fontRenderer.drawString("test content\nnew line")
+    fontRenderer.drawString(
+        "test content test content test content test content test content test content test content",
+        getProjectionMatrix(width, height), 
+        width
+    )
 }
 
 export function useFontsWebGL(canvasRef: RefObject<HTMLCanvasElement>) {

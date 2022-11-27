@@ -1,4 +1,6 @@
 import { mat4, ReadonlyMat4, vec3 } from "gl-matrix";
+import { off } from "process";
+import { BsSkipStartCircleFill } from "react-icons/bs";
 import { bezierPointsAntigrain } from "../adaptive-bezier/sample";
 import { Point } from "../adaptive-bezier/types";
 import { compareFonts, getCharGlyph, getGlyphInfo, getGlyphPath, GlyphId, glyphScaleFac, ParsedFont, parseGlyphPath } from "../util/font";
@@ -18,7 +20,6 @@ export class FontRendererGL {
     
     constructor(
         private gl: WebGL2RenderingContext, 
-        private projection: ReadonlyMat4,
         private maskShader: ShaderProgram,
         private fillShader: ShaderProgram,
         private font: ParsedFont,
@@ -51,10 +52,6 @@ export class FontRendererGL {
         gl.bindVertexArray(null)
     }
 
-    setProjectionMatrix(projection: ReadonlyMat4) {
-        this.projection = projection
-    }
-
     setFont(font: ParsedFont) {
         const repopulate = compareFonts(this.font, font)
 
@@ -75,7 +72,7 @@ export class FontRendererGL {
         return glyphScaleFac(this.font, ub ? Math.ceil(this.fontSize) : this.fontSize )
     }
 
-    drawString(content: string, maxWidth = Infinity, transform?: mat4) {
+    drawString(content: string, projection: ReadonlyMat4, maxWidth = Infinity, transform?: mat4) {
         const modelBase = mat4.create()
 
         const sf = this.getScaleFac();
@@ -88,6 +85,10 @@ export class FontRendererGL {
             mat4.mul(modelBase, modelBase, transform)
         }
 
+        const spaceGlyph = getCharGlyph(this.font, " ".charCodeAt(0))
+        const spaceInfo = getGlyphInfo(this.font, spaceGlyph)
+        const spaceDist = spaceInfo!.aWidth
+
         let xoffs = 0;
         let yoffs = lineHeight
         
@@ -96,62 +97,80 @@ export class FontRendererGL {
             yoffs += lineHeight
         }
 
-        for(const c of content) {
-            if(c === "\n") {
-                newLine()
+        for(const word of content.split(" ")) {
+            if(word === "") {
+                xoffs += spaceDist
                 continue
             }
 
-            const code = c.charCodeAt(0)
-            const gid = getCharGlyph(this.font, code)
+            const wordSize = Array.from(word)
+                .reduce((prev, curr) => prev + (getGlyphInfo(this.font, getCharGlyph(this.font, curr.charCodeAt(0)))?.aWidth ?? 0), 0)
 
-            const glyphInfo = getGlyphInfo(this.font, gid)
-            const glyphBuffers = this.glyphs.get(gid)
+            // word wrap
+            if(wordSize + xoffs >= maxWidth * sf ) {
+                newLine()
+            }
 
-            if(!glyphInfo || !glyphBuffers) continue
-
-            const { aWidth } = glyphInfo
-            const { VAO, polys } = glyphBuffers
-
-            // render
-            this.gl.enable(this.gl.STENCIL_TEST)
-                this.gl.clear(this.gl.STENCIL_BUFFER_BIT)
-                this.maskShader.use()
-                this.gl.bindVertexArray(VAO)
-                    this.gl.stencilFunc(this.gl.NEVER, 0, 0xFF)
-                    this.gl.stencilOp(this.gl.INVERT, this.gl.INVERT, this.gl.INVERT)
-
-                    for(const [i, l] of polys) {
-                        const model = mat4.create();
-
-                        mat4.mul(model, model, modelBase)
-                        mat4.translate(model, model, vec3.fromValues(xoffs, -yoffs, 0))
-
-                        this.gl.bindAttribLocation(this.maskShader.id, 0, "aPos")
-                        this.maskShader.setMat4("projection", this.projection)
-                        this.maskShader.setMat4("model", model)
+            for(const c of word) {
+                if(c === "\n") {
+                    newLine()
+                    continue
+                }
     
-                        this.gl.drawArrays(this.gl.TRIANGLE_FAN, i, l)
-                    }
-                this.gl.bindVertexArray(null)
-
-                this.fillShader.use()
-                // fillShader.setInt("ww", width)
-                // fillShader.setInt("wh", height)
-                // fillShader.setVec4("col1", colorVec4(colors.main))
-                // fillShader.setVec4("col2", colorVec4(colors.acc))
-                this.gl.bindVertexArray(this.screenVAO)
-                    this.gl.bindAttribLocation(this.fillShader.id, 0, "aPos")
-                    
-                    this.gl.stencilFunc(this.gl.EQUAL, 0xFF, 0xFF)
-                    this.gl.stencilOp(this.gl.KEEP, this.gl.KEEP, this.gl.KEEP)
+                const code = c.charCodeAt(0)
+                const gid = getCharGlyph(this.font, code)
+    
+                const glyphInfo = getGlyphInfo(this.font, gid)
+                const glyphBuffers = this.glyphs.get(gid)
+    
+                if(!glyphInfo || !glyphBuffers) continue
+    
+                const { aWidth } = glyphInfo
+                const { VAO, polys } = glyphBuffers
+    
+                // render
+                this.gl.enable(this.gl.STENCIL_TEST)
+                    this.gl.clear(this.gl.STENCIL_BUFFER_BIT)
+                    this.maskShader.use()
+                    this.gl.bindVertexArray(VAO)
+                        this.gl.stencilFunc(this.gl.NEVER, 0, 0xFF)
+                        this.gl.stencilOp(this.gl.INVERT, this.gl.INVERT, this.gl.INVERT)
+    
+                        for(const [i, l] of polys) {
+                            const model = mat4.create();
+    
+                            mat4.mul(model, model, modelBase)
+                            mat4.translate(model, model, vec3.fromValues(xoffs, -yoffs, 0))
+    
+                            this.gl.bindAttribLocation(this.maskShader.id, 0, "aPos")
+                            this.maskShader.setMat4("projection", projection)
+                            this.maskShader.setMat4("model", model)
+        
+                            this.gl.drawArrays(this.gl.TRIANGLE_FAN, i, l)
+                        }
+                    this.gl.bindVertexArray(null)
+    
+                    this.fillShader.use()
+                    // fillShader.setInt("ww", width)
+                    // fillShader.setInt("wh", height)
+                    // fillShader.setVec4("col1", colorVec4(colors.main))
+                    // fillShader.setVec4("col2", colorVec4(colors.acc))
+                    this.gl.bindVertexArray(this.screenVAO)
+                        this.gl.bindAttribLocation(this.fillShader.id, 0, "aPos")
+                        
+                        this.gl.stencilFunc(this.gl.EQUAL, 0xFF, 0xFF)
+                        this.gl.stencilOp(this.gl.KEEP, this.gl.KEEP, this.gl.KEEP)
+                
+                        this.gl.drawArrays(this.gl.TRIANGLES, 0, 6)
+                    this.gl.bindVertexArray(null)
+                this.gl.disable(this.gl.STENCIL_TEST)
+    
+                xoffs += aWidth
+            }
             
-                    this.gl.drawArrays(this.gl.TRIANGLES, 0, 6)
-                this.gl.bindVertexArray(null)
-            this.gl.disable(this.gl.STENCIL_TEST)
-
-            xoffs += aWidth
+            xoffs += spaceDist
         }
+
     }
 
     populateGlyphCache(glyphSet?: Set<GlyphId>) {
