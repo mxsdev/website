@@ -65,8 +65,13 @@ export class FontRendererGL {
         if(repopulate) this.populateGlyphCache()
     }
 
+    private fontSizeThreshold(size: number) {
+        const N = 50
+        return N * Math.ceil(size / N)
+    }
+
     setFontSize(size: number) {
-        const repopulate = Math.ceil(size) !== Math.ceil(this.fontSize)
+        const repopulate = this.fontSizeThreshold(size) !== this.fontSizeThreshold(this.fontSize)
         
         this.fontSize = size
 
@@ -74,7 +79,7 @@ export class FontRendererGL {
     }
 
     private getScaleFac(ub = false) {
-        return glyphScaleFac(this.font, ub ? Math.ceil(this.fontSize) : this.fontSize )
+        return glyphScaleFac(this.font, ub ? this.fontSizeThreshold(this.fontSize) : this.fontSize )
     }
 
     drawString(
@@ -113,6 +118,15 @@ export class FontRendererGL {
 
         let charID = 0;
 
+        this.gl.enable(this.gl.STENCIL_TEST)
+
+        this.gl.clear(this.gl.STENCIL_BUFFER_BIT)
+        this.maskShader.use()
+
+        this.gl.stencilFunc(this.gl.NEVER, 0, 0xFF)
+        this.gl.stencilOp(this.gl.INVERT, this.gl.INVERT, this.gl.INVERT)
+
+
         for(const word of content.split(" ")) {
             if(word === "") {
                 xoffs += spaceDist
@@ -145,46 +159,23 @@ export class FontRendererGL {
                 const { VAO, polys } = glyphBuffers
     
                 // render
-                this.gl.enable(this.gl.STENCIL_TEST)
-                    this.gl.clear(this.gl.STENCIL_BUFFER_BIT)
-                    this.maskShader.use()
-                    this.gl.bindVertexArray(VAO)
-                        this.gl.stencilFunc(this.gl.NEVER, 0, 0xFF)
-                        this.gl.stencilOp(this.gl.INVERT, this.gl.INVERT, this.gl.INVERT)
-    
-                        const model = mat4.create();
+                this.gl.bindVertexArray(VAO)
+                    const model = mat4.create();
 
-                        mat4.mul(model, model, modelBase)
-                        mat4.translate(model, model, vec3.fromValues(xoffs, -yoffs, 0))
+                    mat4.mul(model, model, modelBase)
+                    mat4.translate(model, model, vec3.fromValues(xoffs, -yoffs, 0))
 
-                        this.gl.bindAttribLocation(this.maskShader.id, 0, "aPos")
-                        this.maskShader.setMat4("projection", projection)
-                        this.maskShader.setMat4("model", model)
-                        this.maskShader.setFloat("time", elapsedSeconds)
-                        this.maskShader.setInt("charID", charID++)
-                        this.maskShader.setVec2("origin", vec2.fromValues((xMin + xMax)/1, (yMin + yMax)/2))
+                    this.gl.bindAttribLocation(this.maskShader.id, 0, "aPos")
+                    this.maskShader.setMat4("projection", projection)
+                    this.maskShader.setMat4("model", model)
+                    this.maskShader.setFloat("time", elapsedSeconds)
+                    this.maskShader.setInt("charID", charID++)
+                    this.maskShader.setVec2("origin", vec2.fromValues((xMin + xMax)/1, (yMin + yMax)/2))
 
-                        for(const [i, l] of polys) {
-                            this.gl.drawArrays(this.gl.TRIANGLE_FAN, i, l)
-                        }
-                    this.gl.bindVertexArray(null)
-    
-                    // TODO: make this a single render call
-                    this.fillShader.use()
-                    this.fillShader.setInt("ww", width)
-                    this.fillShader.setInt("wh", height)
-                    this.fillShader.setVec4("col1", col1)
-                    this.fillShader.setVec4("col2", col2)
-                    this.fillShader.setFloat("time", elapsedSeconds)
-                    this.gl.bindVertexArray(this.screenVAO)
-                        this.gl.bindAttribLocation(this.fillShader.id, 0, "aPos")
-                        
-                        this.gl.stencilFunc(this.gl.EQUAL, 0xFF, 0xFF)
-                        this.gl.stencilOp(this.gl.KEEP, this.gl.KEEP, this.gl.KEEP)
-                
-                        this.gl.drawArrays(this.gl.TRIANGLES, 0, 6)
-                    this.gl.bindVertexArray(null)
-                this.gl.disable(this.gl.STENCIL_TEST)
+                    for(const [i, l] of polys) {
+                        this.gl.drawArrays(this.gl.TRIANGLE_FAN, i, l)
+                    }
+                this.gl.bindVertexArray(null)
     
                 xoffs += aWidth
             }
@@ -192,6 +183,22 @@ export class FontRendererGL {
             xoffs += spaceDist
         }
 
+        this.fillShader.use()
+        this.fillShader.setInt("ww", width)
+        this.fillShader.setInt("wh", height)
+        this.fillShader.setVec4("col1", col1)
+        this.fillShader.setVec4("col2", col2)
+        this.fillShader.setFloat("time", elapsedSeconds)
+        this.gl.bindVertexArray(this.screenVAO)
+            this.gl.bindAttribLocation(this.fillShader.id, 0, "aPos")
+            
+            this.gl.stencilFunc(this.gl.EQUAL, 0xFF, 0xFF)
+            this.gl.stencilOp(this.gl.KEEP, this.gl.KEEP, this.gl.KEEP)
+    
+            this.gl.drawArrays(this.gl.TRIANGLES, 0, 6)
+        this.gl.bindVertexArray(null)
+
+        this.gl.disable(this.gl.STENCIL_TEST)
     }
 
     populateGlyphCache(glyphSet?: Set<GlyphId>) {
@@ -248,7 +255,7 @@ export class FontRendererGL {
                 {
                     const shapeData = new Float32Array(glyphBezierPts.flatMap(x => x))
     
-                    this.gl.bufferData(this.gl.ARRAY_BUFFER, shapeData, this.gl.STATIC_DRAW)
+                    this.gl.bufferData(this.gl.ARRAY_BUFFER, shapeData, this.gl.DYNAMIC_DRAW)
         
                     if(!originalVAO) {
                         this.gl.vertexAttribPointer(0, 2, this.gl.FLOAT, false, 2 * shapeData.BYTES_PER_ELEMENT, 0);

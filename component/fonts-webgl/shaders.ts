@@ -86,8 +86,8 @@ void main()
 {
     mat4 shift = buildTranslation(
         vec3(
-            3.0 * (cnoise(vec3(time/2.0, 0.0, charID * 2))), // + cnoise(vec3(time, 4.0, gl_VertexID + charID * 2))),
-            3.0 * (cnoise(vec3(time/2.0, 1.0, charID * 2))), // + cnoise(vec3(time, 6.0, gl_VertexID + charID * 2))),
+            3.0 * (cnoise(vec3(time/1.5, 0.0, charID * 2))), // + cnoise(vec3(time, 4.0, gl_VertexID + charID * 2))),
+            3.0 * (cnoise(vec3(time/1.5, 1.0, charID * 2))), // + cnoise(vec3(time, 6.0, gl_VertexID + charID * 2))),
             0.0
         )
     );
@@ -96,6 +96,7 @@ void main()
     mat4 rot = buildTranslation(vec3(origin, 0.0)) * rotb * buildTranslation(vec3(-origin, 0.0));
 
     gl_Position = projection * shift * model * rot * vec4(aPos, 0.0, 1.0);
+    // gl_Position = projection * model * vec4(aPos, 0.0, 1.0);
 }
 `.trim()
 

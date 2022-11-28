@@ -81,13 +81,11 @@ export function useFontsWebGL(canvasRef: RefObject<HTMLCanvasElement>, content: 
 
     useEffect(() => {
         fontRendererRef?.current?.setFont(font)
-        // rerender()
     }, [font])
 
-    // useEffect(() => {
-    //     fontRendererRef?.current?.setFontSize(fontSize)
-    //     rerender()
-    // }, [fontSize])
+    useEffect(() => {
+        fontRendererRef?.current?.setFontSize(fontSize)
+    }, [fontSize])
 
     useEffect(() => {
         if(initialized.current || !canvasRef.current) return

@@ -9,16 +9,17 @@ import { ShaderProgram } from "../../util/gl/shader"
 type Props = {
     content: string
     font: ParsedFont
+    fontSize: number
 }
 
-export const FontsWebGLCanvas: FC<Props> = ({ content, font }) => {
+export const FontsWebGLCanvas: FC<Props> = ({ content, font, fontSize }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null)
 
     useFontsWebGL(
         canvasRef,
         content,
         font,
-        30,
+        fontSize
     )
 
     return (<>
