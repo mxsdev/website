@@ -3,6 +3,7 @@
 import React, { FC, useCallback, useEffect, useState } from "react"
 import { FormArea } from "../component/ui/FormArea"
 import { FormEntry } from "../component/ui/FormEntry"
+import { Select } from "../component/ui/Select"
 import { TextInput } from "../component/ui/TextInput"
 import { deserializeGraphEdgeListPrimitive, deserializeGraphNodeListPrimitive, GraphEdgeListPrimitive, GraphNodeListPrimitive, layoutForce } from "./force"
 import { SVGGraphResult } from "./renderGraph"
@@ -17,7 +18,7 @@ type Mode = 'graph'|'tree'
 export const GraphDrawingDemo: FC<Props> = ({ }) => {
     const [ mode, setMode ] = useState<Mode>('graph')
 
-    const [ tree, setTree, treeLayout, treePrimitive ] = useBinaryTree([1, 2, 3])
+    const [ tree, setTree, treeLayout, treePrimitive ] = useBinaryTree([1,2,3,4,null,3,"x"])
     const {
         edgeList: [ edgeList, setEdgeList ],
         nodeList: [ nodeList, setNodeList ],
@@ -73,6 +74,24 @@ export const GraphDrawingDemo: FC<Props> = ({ }) => {
             </div>
 
             <FormArea>
+                <FormEntry id="mode" text="Algorithm">
+                    <Select<Mode>
+                        ariaLabel="algorithm"
+                        options={[
+                            {
+                                value: 'graph',
+                                text: "Graph (Force)"
+                            },
+                            {
+                                value: 'tree',
+                                text: "Tree"
+                            }
+                        ]}
+
+                        value={mode}
+                        setValue={setMode}
+                    />
+                </FormEntry>
                 {form}
             </FormArea>
         </div>

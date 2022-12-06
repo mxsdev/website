@@ -18,7 +18,7 @@ export const TextInput: FC<Props> = ({
 }) => {
     return (<>
         <input 
-            className={cl("border-2 text-sm bg-bg border-fg text-fg placeholder:text-fg/70 p-1", className)}
+            className={cl("border-2 text-sm bg-bg border-fg text-fg placeholder:text-fg/70 px-1", className)}
 
             type="text"
             name={name}
