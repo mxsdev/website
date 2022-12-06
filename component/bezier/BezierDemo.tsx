@@ -5,6 +5,7 @@ import { Slider } from "../ui/Slider"
 import { FunctionComponent, useState } from "react";
 import { FormEntry } from "../ui/FormEntry";
 import { Checkbox } from "../ui/Checkbox";
+import { FormArea } from "../ui/FormArea";
 
 const size = 480
 
@@ -24,7 +25,7 @@ export const BezierDemo: FunctionComponent = () => {
                 className="border-2 border-fg mx-auto block" 
             />
 
-            <div className="[&>*]:mt-6 p-2">
+            <FormArea>
                 <FormEntry text="Stroke Width" id="slider-sw">
                     <Slider 
                         className="flex-grow"
@@ -44,7 +45,7 @@ export const BezierDemo: FunctionComponent = () => {
                         id="toggle-points"
                     />
                 </FormEntry>
-            </div>
+            </FormArea>
         </div>
     );
 }
