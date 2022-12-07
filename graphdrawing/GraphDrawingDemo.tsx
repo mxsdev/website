@@ -4,6 +4,7 @@ import React, { FC, useCallback, useEffect, useState } from "react"
 import { FormArea } from "../component/ui/FormArea"
 import { FormEntry } from "../component/ui/FormEntry"
 import { Select } from "../component/ui/Select"
+import { SimpleButton } from "../component/ui/SimpleButton"
 import { TextInput } from "../component/ui/TextInput"
 import { deserializeGraphEdgeListPrimitive, deserializeGraphNodeListPrimitive, GraphEdgeListPrimitive, GraphNodeListPrimitive, layoutForce } from "./force"
 import { SVGGraphResult } from "./renderGraph"
@@ -15,17 +16,26 @@ type Props = {
 
 type Mode = 'graph'|'tree'
 
+const GraphExamples: [GraphNodeListPrimitive, GraphEdgeListPrimitive][] = [
+    [[1,2,3,4,5], [[1,2],[2,3],[1,3],[5,4],[4,3]]],
+    [[1,2,3], [[1,2],[2,3],[1,3]]],
+]
+
+const TreeExamples: BinaryTreePrimitive[] = [
+    [1,2,3,4,null,3,"x"]
+]
+
 export const GraphDrawingDemo: FC<Props> = ({ }) => {
     const [ mode, setMode ] = useState<Mode>('graph')
 
-    const [ tree, setTree, treeLayout, treePrimitive ] = useBinaryTree([1,2,3,4,null,3,"x"])
+    const [ tree, setTree, treeLayout, treePrimitive ] = useBinaryTree(TreeExamples[0])
     const {
-        edgeList: [ edgeList, setEdgeList ],
-        nodeList: [ nodeList, setNodeList ],
+        edgeList: [ edgeList, setEdgeList, edgeListDeserialized ],
+        nodeList: [ nodeList, setNodeList, nodeListDeserialized ],
         getLayout: graphLayout,
-    } = useGraph([1, 2, 3], [[1, 2], [2, 3], [1, 3]])
+    } = useGraph(...GraphExamples[0])
 
-    const { display, form } = ({
+    const { display, form, examples } = ({
         graph: {
             display: (
                 <SVGGraphResult 
@@ -45,7 +55,15 @@ export const GraphDrawingDemo: FC<Props> = ({ }) => {
                         setValue={setEdgeList}
                     />
                 </FormEntry>
-            </>)
+            </>),
+            examples: GraphExamples.map(([nodes, edges]) => ({
+                callback: () => {
+                    setNodeList(JSON.stringify(nodes))
+                    setEdgeList(JSON.stringify(edges))
+                },
+                active: (JSON.stringify(nodes) === JSON.stringify(nodeListDeserialized)) && 
+                    (JSON.stringify(edges) === JSON.stringify(edgeListDeserialized))
+            })),
         },
         tree: {
             display: (
@@ -55,13 +73,19 @@ export const GraphDrawingDemo: FC<Props> = ({ }) => {
                 />
             ),
             form: (
-                <FormEntry id="tree" text="Tree">
+                <FormEntry id="tree" text="Tree (Level-Order)">
                     <TextInput 
                         value={tree}
                         setValue={setTree}
                     />
                 </FormEntry>
-            )
+            ),
+            examples: TreeExamples.map((exampleTree) => ({
+                callback: () => {
+                    setTree(JSON.stringify(exampleTree))
+                },
+                active: JSON.stringify(exampleTree) === JSON.stringify(treePrimitive)
+            }))
         }
     })[mode]
 
@@ -93,6 +117,20 @@ export const GraphDrawingDemo: FC<Props> = ({ }) => {
                     />
                 </FormEntry>
                 {form}
+                <FormEntry id="example" text="Example">
+                    <div className="flex gap-2">
+                        { 
+                            examples.map(({ callback, active }, index) =>
+                                <SimpleButton 
+                                    key={`example-${index}`}
+                                    onClick={callback}
+                                    active={active}
+                                    text={index.toString()}
+                                />
+                            )
+                        }
+                    </div>
+                </FormEntry>
             </FormArea>
         </div>
     )
@@ -114,8 +152,8 @@ function useGraph(defaultNodes: GraphNodeListPrimitive, defaultEdges: GraphEdgeL
     const getLayout = useCallback(() => layoutForce(nodeList, edgeList), [nodeList, edgeList])
 
     return {
-        edgeList: [ edgeListSerialized, setEdgeListSerialized ],
-        nodeList: [ nodeListSerialized, setNodeListSerialized ],
+        edgeList: [ edgeListSerialized, setEdgeListSerialized, edgeList ],
+        nodeList: [ nodeListSerialized, setNodeListSerialized, nodeList ],
         getLayout,
     } as const
 }

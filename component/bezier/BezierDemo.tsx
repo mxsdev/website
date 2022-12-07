@@ -14,6 +14,7 @@ export const BezierDemo: FunctionComponent = () => {
     const [ enableBezierPoints, setEnableBezierPoints ] = useState<boolean>(true)
     
     return (
+        <>
         <div style={{ maxWidth: size }} className="mx-auto">
             <BezierCanvas
                 options={{
@@ -24,6 +25,7 @@ export const BezierDemo: FunctionComponent = () => {
                 width={size} height={size}
                 className="border-2 border-fg mx-auto block" 
             />
+        </div>
 
             <FormArea>
                 <FormEntry text="Stroke Width" id="slider-sw">
@@ -46,6 +48,6 @@ export const BezierDemo: FunctionComponent = () => {
                     />
                 </FormEntry>
             </FormArea>
-        </div>
+        </>
     );
 }
