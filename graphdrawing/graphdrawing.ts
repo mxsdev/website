@@ -6,16 +6,18 @@ export interface GraphSizing {
     levelDistance: number,
 }
 
-export const defaultGraphSizing: GraphSizing = {
+export const defaultGraphSizing: GraphSizing = scaleSizing({
     nodeSize: 18,
     siblingSep: 15,
     levelDistance: 52.5
-}
+}, 1.25)
 
-// export const DefaultGraphSizing = {
-//   'node size': NODE_SIZE,
-//   'level distance': 52.5,
-//   'sibling distance': SIB_SEP,
-//   'sibling pre sep': SIB_SEP/2,
-//   'sibling post sep': SIB_SEP/2,
-// }
+function scaleSizing(sizing: GraphSizing, sf: number): GraphSizing {
+    const res = { ...sizing }
+
+    for(const key of Object.keys(res)) {
+        res[key as keyof GraphSizing] *= sf
+    }
+
+    return res
+}

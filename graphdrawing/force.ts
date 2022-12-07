@@ -25,6 +25,8 @@ export function layoutForce(
         .pushOption('node distance', nodeSize*3.5)
         .pushOption('level distance', levelDistance)
         .pushOption('sibling sep', siblingSep)
+        .pushOption('component sep', siblingSep*2)
+        .pushOption('component packing', 'rectangular')
   
     builder.beginGraphDrawingScope().pushLayout()
 
