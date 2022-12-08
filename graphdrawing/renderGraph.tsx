@@ -23,7 +23,6 @@ export function SVGGraphResult(
         text?: Record<any, string | { toString: () => string }>, 
         sizing?: GraphSizing
     }
-
 ) {
     return <SVGGraph 
         graph={{
