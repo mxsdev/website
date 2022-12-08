@@ -47,12 +47,14 @@ export const GraphDrawingDemo: FC<Props> = ({ }) => {
                     <TextInput 
                         value={nodeList}
                         setValue={setNodeList}
+                        code
                     />
                 </FormEntry>
                 <FormEntry id="edges" text="Edges">
                     <TextInput 
                         value={edgeList}
                         setValue={setEdgeList}
+                        code
                     />
                 </FormEntry>
             </>),
@@ -77,6 +79,7 @@ export const GraphDrawingDemo: FC<Props> = ({ }) => {
                     <TextInput 
                         value={tree}
                         setValue={setTree}
+                        code
                     />
                 </FormEntry>
             ),
