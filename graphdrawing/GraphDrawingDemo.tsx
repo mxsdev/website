@@ -129,6 +129,7 @@ export const GraphDrawingDemo: FC<Props> = ({ }) => {
                                     onClick={callback}
                                     active={active}
                                     text={index.toString()}
+                                    className="font-mono"
                                 />
                             )
                         }
