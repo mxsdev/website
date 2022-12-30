@@ -24,12 +24,15 @@ type Props = {
     href: string
     githubHref: string
 
+    githubRepo?: string
     showStars?: boolean
 }
 
-export const ProjectCard: FC<Props> = ({ className, imageClassName, img, title, description, frameworks, href, githubHref, showStars = false }) => {
+export const ProjectCard: FC<Props> = ({ className, imageClassName, img, title, description, frameworks, href, githubHref, showStars = false, githubRepo }) => {
     const [imgRef, setImgRef] = useState<HTMLImageElement>()
     const [ transitionable, setTransitionable ] = useState(false)
+
+    const [ stars, setStars ] = useState<number>()
 
     const hovered = useContainerHovered(imgRef)
 
@@ -37,6 +40,20 @@ export const ProjectCard: FC<Props> = ({ className, imageClassName, img, title, 
         setInterval(() => setTransitionable(true), 300)
         setImgRef(img)
     }
+
+    useEffect(() => {
+        if(!githubRepo || !showStars) return
+
+        const controller = new AbortController()
+
+        fetch(`https://api.github.com/repos/${githubRepo}`, { signal: controller.signal })
+            .then(async (res) => {
+                const { stargazers_count } = await res.json() as { stargazers_count: number }
+                setStars(stargazers_count)
+            })
+
+        return () => controller.abort()
+    }, [githubRepo, showStars])
 
     return (
         <a href={href}>
@@ -106,7 +123,7 @@ export const ProjectCard: FC<Props> = ({ className, imageClassName, img, title, 
                             className="flex gap-2 items-center"
                         >
                             <MdOutlineStarOutline size={26} />
-                            <span className="font-bold">112</span>
+                            <span className="font-bold">{stars ?? "--"}</span>
                         </div>
                     }
                 </div>

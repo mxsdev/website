@@ -102,6 +102,7 @@ export const ProjectCards: FC<Props> = ({ DyadicImage, GraphDrawingImage, Ponych
               githubHref="https://github.com/mxsdev/nvim-dap-vscode-js"
 
               showStars={true}
+              githubRepo="mxsdev/nvim-dap-vscode-js"
             />
 
             <ProjectCard 
