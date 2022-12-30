@@ -29,9 +29,14 @@ type Props = {
 
 export const ProjectCard: FC<Props> = ({ className, imageClassName, img, title, description, frameworks, href, githubHref, showStars = false }) => {
     const [imgRef, setImgRef] = useState<HTMLImageElement>()
+    const [ transitionable, setTransitionable ] = useState(false)
+
     const hovered = useContainerHovered(imgRef)
 
-    const onLoadingComplete = setImgRef
+    const onLoadingComplete = (img: HTMLImageElement) => {
+        setInterval(() => setTransitionable(true), 300)
+        setImgRef(img)
+    }
 
     return (
         <a href={href}>
@@ -86,7 +91,8 @@ export const ProjectCard: FC<Props> = ({ className, imageClassName, img, title, 
 
                                 className={cl(
                                     "object-cover select-none",
-                                    "transition-all",
+                                    { ["transition-all"]: transitionable },
+                                    { ["transition-none"]: !transitionable},
                                     imageClassName,
                                     { ["duration-500"]: hovered },
                                     { ["duration-[1.5s]"]: !hovered },
