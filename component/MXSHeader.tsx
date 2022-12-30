@@ -1,7 +1,7 @@
 "use client"
 
 import cl from "classnames"
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import BezierEasing from "bezier-easing"
 import { waitBefore, waitCycle } from "../util/anim"
 import {
@@ -12,6 +12,7 @@ import {
   applyToPoints,
   assignPoints,
 } from "../util/svg"
+import { GithubIcon, TwitterIcon, YoutubeIcon } from "./icons/SocialIcons"
 
 const TH = 130
 const paddingX = 32
@@ -34,7 +35,7 @@ const delay = 0.35
 const easing1 = BezierEasing(0.53, 0.09, 0.41, 1.01)
 const easing2 = BezierEasing(0.68, 0.04, 0.41, 1.01)
 
-export const MXSHeader = (props: { className?: string }) => {
+export const MXSHeader = ({ className, includeSocials = false }: { className?: string, includeSocials?: boolean }) => {
   const svg = useRef<SVGSVGElement>(null)
   const poly1 = useRef<SVGPolygonElement>(null)
   const poly2 = useRef<SVGPolygonElement>(null)
@@ -89,8 +90,44 @@ export const MXSHeader = (props: { className?: string }) => {
     }
   }, [])
 
+  const iconFac = 1.4
+
+  const iconWidth = 20 / iconFac
+  const iconGap = 7.5 / iconFac
+  
+  const icons: {
+    svg: JSX.Element,
+    href: string,
+  }[] = [
+    {
+      svg: GithubIcon,
+      href: "https://github.com/mxsdev",
+    },
+    {
+      svg: TwitterIcon,
+      href: "https://twitter.com/maxStoumen",
+    },
+    {
+      svg: YoutubeIcon,
+      href: "https://www.youtube.com/channel/UCODvGzoB_aMDRlrDttkmCVQ",
+    }
+  ]
+  const numIcons = icons.length
+
+  const outerIconTransform = `translate(${width/2 - numIcons*(iconGap - 1 + iconWidth)/2} ${height - iconWidth * iconFac})`
+  const innerIconTransform = (i: number) => `translate(${i * (iconGap + iconWidth)} 0) scale(${iconWidth / 512})`
+
+  const [ _hoverState, _setHoverState ] = useState<Record<number, boolean>>({})
+  const updateHoverState = (idx: number, val: boolean) => () => _setHoverState(s => ({ ...s, [idx]: val }))
+  const getHoverState = (idx: number) => !!_hoverState[idx]
+
+  const iconClassNames = (idx: number) => ({
+    ["transition-transform"]: true,
+    ["-translate-y-[2px]"]: getHoverState(idx),
+  })
+
   return (
-    <svg className={cl(props.className)}viewBox={`0 0 ${width} ${height}`} ref={svg}>
+    <svg className={cl(className)}viewBox={`0 0 ${width} ${height}`} ref={svg}>
       <g id="bg" mask="url(#knockout-text)">
         <rect width="100%" height="100%" className="fill-fg" />
       </g>
@@ -109,6 +146,26 @@ export const MXSHeader = (props: { className?: string }) => {
         />
       </g>
 
+      { includeSocials &&
+        <g transform={outerIconTransform}>
+          { icons.map(({ href }, i) => (
+            <a 
+              key={href} href={href}
+              onMouseEnter={updateHoverState(i, true)}
+              onMouseLeave={updateHoverState(i, false)}
+            >
+              <g transform={innerIconTransform(i)}>
+                <rect 
+                  width="512" height="512"
+                  opacity="0"
+                />
+              </g>
+            </a>
+          ))
+          }
+        </g>
+      }
+
       <mask id="knockout-text">
         <rect width="100%" height="100%" fill="#000" x="0" y="0" />
         <text
@@ -116,11 +173,37 @@ export const MXSHeader = (props: { className?: string }) => {
           y="50%"
           textAnchor="middle"
           dominantBaseline="middle"
-          className="text-9xl font-extrabold italic font-header"
+          className={cl(
+            "font-extrabold italic font-header",
+            { ["text-7xl"]: includeSocials },
+            { ["text-9xl"]: !includeSocials },
+          )}
           fill="#fff"
         >
           mxs
         </text>
+
+        { includeSocials &&
+          <g
+            transform={outerIconTransform}
+          >
+            {
+              icons.map(({ svg, href }, i) => (
+                <g
+                  className={cl(iconClassNames(i))}
+                  key={href}
+                >
+                  <g 
+                    fill="#fff" 
+                    transform={innerIconTransform(i)}
+                  >
+                    {svg}
+                  </g>
+                </g>
+              ))
+            }
+          </g>
+        }
       </mask>
     </svg>
   )

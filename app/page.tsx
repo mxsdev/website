@@ -20,23 +20,10 @@ const Home: NextPage = () => {
       <div className="gap-6 md:max-w-screen-md sm:max-w-screen-sm h-screen mx-auto px-4 mt-4 sm:mt-6 md:mt-10">
         <div>
           <div className="mb-8">
-            <MXSHeader className="mx-auto h-28" />
-            <SocialLinks />
+            <MXSHeader className="mx-auto h-44" includeSocials />
+            {/* <SocialLinks /> */}
           </div>
 
-          {/* <ResponsiveMasonry
-            columnsCountBreakPoints={{
-              300: 3
-            }}
-          >
-            <Masonry
-              // className="columns-3 gap-6 [&>a>*]:mb-6 mt-2"
-              // columnsCount={3}
-
-            >
-            </Masonry>
-          </ResponsiveMasonry> */}
-          
           <ProjectCards 
             DyadicImage={DyadicImage}
             TsExplorerImage={TsExplorerImage}
