@@ -1,28 +1,60 @@
 import type { NextPage } from "next"
-import { Card } from "../component/Card"
 import { MXSHeader } from "../component/MXSHeader"
 import { SocialLinks } from "../component/SocialLinks"
 import Head from "next/head"
+import { ProjectCards } from "../component/projects/ProjectCards"
+import DyadicImage from "../public/projects/dyadic.png"
+import TsExplorerImage from "../public/projects/type_explorer.png"
+import PonychopperImage from "../public/projects/ponychopper.png"
+import GraphDrawingImage from "../public/projects/graphdrawing.png"
+import { getTailwindConfig } from "../util/tailwind"
 
 const Home: NextPage = () => {
+  const tailwindConfig = getTailwindConfig()
+  
   return (
     <>
       <Head>
         <title>mxs</title>
       </Head>
-      <div className="flex-col gap-6 flex justify-center w-full h-screen">
+      <div className="gap-6 md:max-w-screen-md sm:max-w-screen-sm h-screen mx-auto px-4 mt-4 sm:mt-6 md:mt-10">
         <div>
-          <MXSHeader className="mx-auto h-28" />
-          <SocialLinks />
+          <div className="mb-8">
+            <MXSHeader className="mx-auto h-28" />
+            <SocialLinks />
+          </div>
+
+          {/* <ResponsiveMasonry
+            columnsCountBreakPoints={{
+              300: 3
+            }}
+          >
+            <Masonry
+              // className="columns-3 gap-6 [&>a>*]:mb-6 mt-2"
+              // columnsCount={3}
+
+            >
+            </Masonry>
+          </ResponsiveMasonry> */}
+          
+          <ProjectCards 
+            DyadicImage={DyadicImage}
+            TsExplorerImage={TsExplorerImage}
+            PonychopperImage={PonychopperImage}
+            GraphDrawingImage={GraphDrawingImage}
+
+            tailwindConfig={tailwindConfig}
+          />
+
         </div>
 
-        <div className="w-full flex justify-center">
+        {/* <div className="w-full flex justify-center">
           <a href="http://github.com/mxsdev/dotfiles">
             <Card>
               <span className="font-mono leading-none font-bold">dotfiles</span>
             </Card>
           </a>
-        </div>
+        </div> */}
       </div>
     </>
   )

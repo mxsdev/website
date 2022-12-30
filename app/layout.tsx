@@ -5,9 +5,9 @@ function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <div className="max-w-[800px] mx-auto px-4">
-          {children}
-        </div>
+        {children}
+        {/* <div className="max-w-[800px] mx-auto px-4">
+        </div> */}
       </body>
     </html>
   )

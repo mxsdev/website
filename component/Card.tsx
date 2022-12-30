@@ -3,19 +3,19 @@
 import { PropsWithChildren } from "react"
 import cl from "classnames"
 
-type Props = {}
+type Props = {
+  className?: string
+  bgClassName?: string
+}
 
-export const Card = (props: PropsWithChildren<Props>) => {
+export const Card = ({ className, children, bgClassName }: PropsWithChildren<Props>) => {
   return (
-    <div className="relative ml-1.5 mt-1.5 inline-block">
+    <div 
+      className={cl("relative ml-1.5 mt-1.5 inline-block group", className)}
+    >
+      <InternalCard hidden={false} secondary={true} className={bgClassName}> </InternalCard>
       <InternalCard hidden={false} secondary={false}>
-        {props.children}
-      </InternalCard>
-      <InternalCard hidden={false} secondary={true}>
-        {props.children}
-      </InternalCard>
-      <InternalCard hidden={true} secondary={false}>
-        {props.children}
+        {children}
       </InternalCard>
     </div>
   )
@@ -25,25 +25,23 @@ const InternalCard = ({
   hidden,
   secondary,
   children,
-}: PropsWithChildren<{ hidden: boolean; secondary: boolean }>) => {
+  className
+}: PropsWithChildren<{ hidden: boolean; secondary: boolean, className?: string }>) => {
   const primary = !secondary && !hidden
 
   return (
     <>
       <div
         className={cl(
-          "inline-block backface-hidden bg-bg border-fg border-2 px-2 py-1",
+          "inline-block backface-hidden bg-bg border-fg border-2 w-full",
           {
-            ["z-10"]: !hidden && !secondary,
-            ["invisible"]: hidden,
-            ["absolute"]: !hidden,
-            ["-top-1.5 -left-1.5"]: secondary,
-            ["peer-hover:-translate-y-1 duration-300"]: secondary,
-            ["peer hover:-translate-y-0.5 "]: primary,
+            ["z-20 relative"]: primary,
+            ["-top-2 -left-2 absolute w-full h-full z-10"]: secondary,
+            ["group-hover:-translate-y-2 duration-300"]: secondary || primary,
             ["transition"]: primary || secondary,
             ["delay-75"]: secondary,
-            // ["hover:shadow-lg hover:shadow-main/10"]: primary,
-          }
+          },
+          className,
         )}
       >
         <div
