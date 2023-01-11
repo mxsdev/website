@@ -37,7 +37,7 @@ const Icons = {
         icon: SiNeovim,
         color: "#83BC66",
     }
-} satisfies Record<string, { icon: IconType, color: string }>
+}// satisfies Record<string, { icon: IconType, color: string }>
 
 export type Framework = keyof typeof Icons
 

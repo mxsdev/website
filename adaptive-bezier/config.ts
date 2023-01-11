@@ -17,6 +17,10 @@ export function bezierConfigDefaults(config: Partial<BezierDrawConfig> = {}): Be
         controlStrokeWidth: 1,
         controlStrokeColor: "#FFFFFF",
 
+        enableBezierPoints: true,
+        enableInnerStroke: false,
+        enableStroke: false,
+
         ...config
     }
 }

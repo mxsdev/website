@@ -19,19 +19,18 @@ const Home: NextPage = () => {
       </Head>
       <div className="gap-6 md:max-w-screen-md sm:max-w-screen-sm h-screen mt-4 sm:mt-6 md:mt-10 mx-auto">
         <div className="flex flex-col items-center">
-          <div className="mb-8">
+          {/* <div className="mb-8">
             <MXSHeader className="mx-auto h-44" includeSocials />
-            {/* <SocialLinks /> */}
-          </div>
+          </div> */}
 
-          <ProjectCards 
+          {/* <ProjectCards 
             DyadicImage={DyadicImage}
             TsExplorerImage={TsExplorerImage}
             PonychopperImage={PonychopperImage}
             GraphDrawingImage={GraphDrawingImage}
 
             tailwindConfig={tailwindConfig}
-          />
+          /> */}
 
         </div>
 
