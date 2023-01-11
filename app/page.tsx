@@ -17,8 +17,8 @@ const Home: NextPage = () => {
       <Head>
         <title>mxs</title>
       </Head>
-      <div className="gap-6 md:max-w-screen-md sm:max-w-screen-sm h-screen mx-auto px-4 mt-4 sm:mt-6 md:mt-10">
-        <div>
+      <div className="gap-6 md:max-w-screen-md sm:max-w-screen-sm h-screen mt-4 sm:mt-6 md:mt-10 mx-auto">
+        <div className="flex flex-col items-center">
           <div className="mb-8">
             <MXSHeader className="mx-auto h-44" includeSocials />
             {/* <SocialLinks /> */}
