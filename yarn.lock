@@ -2153,6 +2153,11 @@ globby@^11.1.0:
     merge2 "^1.4.1"
     slash "^3.0.0"
 
+graphdrawing-ts@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/graphdrawing-ts/-/graphdrawing-ts-1.0.1.tgz#6424d919f00b0706abb303a29810f80e0cf534d6"
+  integrity sha512-ZM2/dikrczWkDYZdPLtZfWusCski1w7Tq6Ib3Gqc2geS4DNEJJSnUbI4VB7tin99Yxo7aORaDwwy9b1SMvE8Mg==
+
 has-bigints@^1.0.1, has-bigints@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/has-bigints/-/has-bigints-1.0.2.tgz#0871bd3e3d51626f6ca0966668ba35d5602d6eaa"

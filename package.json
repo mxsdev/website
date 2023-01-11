@@ -18,6 +18,7 @@
     "classnames": "^2.3.2",
     "color2k": "^2.0.0",
     "flo-poly": "^6.0.4",
+    "graphdrawing-ts": "^1.0.1",
     "katex": "^0.16.3",
     "next": "^13.0.2",
     "radix-ui": "^0.0.1",
