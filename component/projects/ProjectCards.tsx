@@ -5,6 +5,7 @@ import { ProjectCard } from "./ProjectCard"
 import Masonry from "react-masonry-css"
 import { StaticImageData } from "next/image"
 import { TailwindConfig } from "../../util/tailwind"
+import dynamic from "next/dynamic"
 
 type Props = {
     DyadicImage: StaticImageData
@@ -15,7 +16,7 @@ type Props = {
     tailwindConfig: TailwindConfig
 }
 
-export const ProjectCards: FC<Props> = ({ DyadicImage, GraphDrawingImage, PonychopperImage, TsExplorerImage, tailwindConfig: { screens } }) => {
+const ProjectCardsInternal: FC<Props> = ({ DyadicImage, GraphDrawingImage, PonychopperImage, TsExplorerImage, tailwindConfig: { screens } }) => {
     return (
         <Masonry
             className="max-w-[300px] sm:max-w-full flex gap-6 [&>div>a>*]:mb-6 mx-auto"
@@ -70,7 +71,7 @@ export const ProjectCards: FC<Props> = ({ DyadicImage, GraphDrawingImage, Ponych
 
               imageClassName={"scale-[130%] object-[50%_5%] group-hover:object-[50%_90%]"}
               
-              href="https://chops.horse"
+              href="https://www.chops.horse"
               githubHref="https://github.com/mxsdev/ponychopper"
             />
 
@@ -119,3 +120,5 @@ export const ProjectCards: FC<Props> = ({ DyadicImage, GraphDrawingImage, Ponych
           </Masonry>
     )
 }
+
+export const ProjectCards = dynamic(() => Promise.resolve(ProjectCardsInternal), { ssr: false })

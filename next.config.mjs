@@ -16,14 +16,17 @@ const withMDX = MDX({
 /** @type {import('next').NextConfig} */
 const nextConfig = withMDX({
   reactStrictMode: true,
-  experimental: {
-    appDir: true,
-  },
+  // experimental: {
+  //   appDir: true,
+  // },
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   webpack: (config, options) => {
     config.experiments.topLevelAwait = true
 
     return config
+  },
+  images: {
+    unoptimized: true,
   }
 })
 
