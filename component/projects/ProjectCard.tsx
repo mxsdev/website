@@ -59,7 +59,7 @@ export const ProjectCard: FC<Props> = ({ className, imageClassName, img, title, 
         <a href={href}>
             <Card
                 className={cl(className, "w-full")}
-                bgClassName="shadow-2xl shadow-fg/20 group-hover:shadow-fg/60"
+                bgClassName="shadow-2xl shadow-fg/20 group-hover:shadow-fg/40"
             >
                 <a href={githubHref}>
                     <div className="hover:scale-[108%] absolute right-2 bottom-2 z-10 bg-bg/25 p-1 rounded-md backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all">
