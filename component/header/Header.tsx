@@ -43,3 +43,10 @@ export function Header() {
         </div>
     )
 }
+
+export function HeaderLayout({ children }: { children: React.ReactNode }) {
+    return <div className="max-w-[900px] mx-auto">
+        <Header />
+        {children}
+    </div>
+}
