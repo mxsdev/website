@@ -9,9 +9,13 @@
         @apply text-2xl;
     }
 
-    .h1, .title {
+    .h1 {
         @apply font-bold;
-        @apply mt-2;
+        @apply mt-6 mb-3;
+    }
+
+    .title {
+        @apply font-bold mt-3;
     }
 
     .content {
@@ -24,7 +28,7 @@
 
     .h2, .h3, .h4, .h5, .h6 {
         @apply text-xl font-bold;
-        @apply mt-1.5;
+        @apply mt-3 mb-1;
     }
 
     .heading {
@@ -46,5 +50,17 @@
 
     .special-content {
         @apply my-8;
+    }
+
+    p, ol, ul {
+        @apply mb-3;
+    }
+
+    ul {
+        @apply ml-4 list-disc;
+    }
+
+    ul > li {
+        @apply mb-2;
     }
 }
