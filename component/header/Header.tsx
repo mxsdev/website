@@ -30,7 +30,7 @@ export function Header() {
                         },
                         {
                             text: "about",
-                            href: "/about"
+                            href: "/"
                         },
                         {
                             text: "blog",
