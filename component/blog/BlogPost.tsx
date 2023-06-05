@@ -153,12 +153,14 @@ export function blogPage(Content: JSX.Element, meta: MDXMeta) {
             <MDXProvider
                 components={mdxComponents}
             >
-                <h1 className={styles.title}>{meta.title}</h1>
-                <p 
-                    className="text-sm opacity-70 select-none"
-                >
-                    {formatDate(meta.created)}
-                </p>
+                <div className="mb-5">
+                    <h1 className={styles.title}>{meta.title}</h1>
+                    <p 
+                        className="text-sm opacity-70 select-none"
+                    >
+                        {formatDate(meta.created)}
+                    </p>
+                </div>
 
                 <div className={styles.content}>
                     {Content}

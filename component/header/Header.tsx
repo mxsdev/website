@@ -34,7 +34,7 @@ export function Header() {
                         },
                         {
                             text: "blog",
-                            href: "/blog",
+                            href: "/",
                             match: "/blog"
                         }
                     ]
