@@ -11,6 +11,7 @@ import BlogLayout from "./BlogLayout"
 import { HeaderLayout } from "../header/Header"
 import { MDXProvider } from '@mdx-js/react'
 import { useColorizedCode } from '../../util/code'
+import Head from 'next/head'
 
 const CodeComponent = ({ code, lang }: { code: string, lang?: string }) => {
     const containerRef = useRef<HTMLDivElement>(null)
@@ -153,6 +154,10 @@ export function blogPage(Content: JSX.Element, meta: MDXMeta) {
             <MDXProvider
                 components={mdxComponents}
             >
+                <Head>
+                    <title>{meta.title}</title>
+                </Head>
+                
                 <div className="mb-5">
                     <h1 className={styles.title}>{meta.title}</h1>
                     <p 
