@@ -8,8 +8,7 @@ const withMDX = MDX({
     remarkPlugins: [remarkMath],
     rehypePlugins: [rehypeKatex],
     // If you use `MDXProvider`, uncomment the following line.
-    // providerImportSource: "@mdx-js/react",
-    providerImportSource: undefined
+    providerImportSource: "@mdx-js/react",
   },
 })
 
@@ -27,7 +26,7 @@ const nextConfig = withMDX({
   },
   images: {
     unoptimized: true,
-  }
+  },
 })
 
 export default nextConfig

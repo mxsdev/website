@@ -1,0 +1,467 @@
+import { blogPage } from "../../component/blog/BlogPost"
+
+export const meta = {
+    title: "Optional Parameters in Rust (Like Bevy/Actix)",
+    created: new Date("2022-12-07T22:35:08.086Z"),
+}
+
+A friend of mine recently showed me the following code, which is a fairly typical usage of Bevy:
+
+```rust
+fn system_func(mut events: EventReader<FileDragAndDrop>) {
+    for event in events.iter() {
+        info!("{:?}", event);
+    }
+}
+
+fn main() {
+    App::new()
+        .add_system(system_func);
+        // ...
+}
+```
+
+The following code for `system_func`, however, would be just as valid:
+
+```rust
+fn system_func(input: Res<Input>) {
+    println!("You typed: {}", input.0);
+}
+
+fn main() {
+    App::new()
+        .add_system(system_func);
+        // ...
+}
+```
+
+In other words, Bevy is somehow calling these functions differently depending on their arguments, so that we can use the `system_func` function to "query" the state of the application. This is pretty convenient, and helps cut down on a lot of boilerplate.
+
+When I first saw this, I was pretty surprised. Is Bevy somehow reflecting the arguments and their type information at runtime? I don't know of anything in Rust that allows that, at least at the raw function level, so I figured it had to be done with generics and macros.
+
+Inspecing Bevy's codebase, and thinking about it for a while, I think I figured it out - and I put a basic demo example in a repo [you can find here](https://github.com/mxsdev/rust-query-functions-demo/blob/main/src/main.rs). 
+
+This article will go over that code demo. I hope it is interesting to you, and that you learn something more about Rust's endlessly fascinating type and macro systems!
+
+{/* As a language, Rust boasts a flexible type system, powerful packaging capabilities with cargo, an excellent standard library, static compilation, and all at the same time the fantastic ability to guarantee soundness at compile time (TODO: ref) through language features such as lifetime specifiers.
+
+One uncomfortable pain-point with Rust, though, is the verbosity which you'll find yourself managing as a codebase grows. Frequent explicit casting and writing and calling of accessor methods are a few tasks which can take up an unfortunate amount of precious development time. 
+
+Rust's emphasis on explicitness over implicitness is probably to blame for this. Another pain-point that arises is optional parameters, which exist neither in functions nor in structs.
+
+Macros, however, together with Rust's tremendously flexible type system, can ameliorate a lot of this - and, amazingly, they can even give us a kind of optional function parameter. */}
+
+{/* # Bevy/Actix's System Functions
+
+Bevy (as well, I'm told, as Actix) have a notion of a "SystemFunction". The idea is that a game, and its ECS, have a number of objects you might want to "query" for*/}
+
+# The End Result
+
+By the end of this example, we will be able to execute some code like the following:
+
+```rust
+fn print_name_and_age(name: Name, age: Age) {
+    println!("{name} is {age} years old!")
+}
+
+fn main() {
+    let app = App {
+        age: 20,
+        name: "Max".into(),
+        surname: "Stoumen".into(),
+        fav_colour: "green".into(),
+    };
+    
+    app.run(print_name_and_age);
+}
+```
+
+Which, when run, will give:
+
+```
+Max is 20 years old!
+```
+
+Again, the idea here is that I could pass any function to `app.run`, and I could have the arguments in any order. So for example, the following code:
+
+```rust
+fn print_name_and_age(name: Name, age: Age) {
+    println!("{name} is {age} years old!")
+}
+
+fn print_name_and_age_swapped(age: Age, name: Name) {
+    println!("{name} is {age} years old!")
+}
+
+fn print_full_name(name: Name, surname: Surname) {
+    println!("Full name: {name} {surname}")
+}
+
+fn main() {
+    // ...
+
+    app.run(print_name_and_age)
+    app.run(print_name_and_age_swapped)
+    app.run(print_full_name)
+}
+```
+
+Would yield the following output:
+
+```
+Max is 20 years old!
+Max is 20 years old!
+Full name: Max Stoumen
+```
+
+# Boilerplate
+
+We will use the following structure for `App`:
+
+```rust
+struct App {
+    name: String,
+    surname: String,
+    fav_colour: String,
+    age: u32,
+}
+```
+
+This example is intentionally simple, but hopefully still illustrative of some "application" object encapsulating some state, where some function can "query" on that state using argument types.
+
+# Implementation
+
+The basic way this will work is by introducing three important traits:
+
+- `Param`, which is an empty trait demarcating "queryable parameters" - that is, types which can be accepted as arguments of one of these functions. In our case this is `Age`, `Name`, `Surname`, and `FavoriteColor`.
+- `AvailableParams`, which will be implemented on `App`. This trait indicates the ability to "populate" the different instances of `Param`. For example, when given `Age`, it will need to return an age.
+- `ParamFunction`, which will be implemented on the functions themselves. When we want to accept a function with a variable order of arguments, we will accept an argument implemting `ParamFunction`.
+
+In practice, the `ParamFunction` implementation will call the `AvailableParams` implementation on each argument, passing the resulting values to the function. The `AvailableParams` implementation will need to discriminate the underlying type of a given generic implementing `Param`, and pass the result.
+
+If that is confusing, see below - seeing the code itself will hopefully clear it up.
+
+## Param
+
+The `Param` struct is simple, and essentially is just a marker:
+
+```rust
+trait Param: Sized + 'static { }
+```
+
+We need `Sized` and `'static` to prevent issues later with implementing `ParamFunction`.
+
+Now we can implement this on all of our queryable structs:
+
+```rust
+#[derive(Debug, Clone)]
+struct Name(String);
+
+#[derive(Debug, Clone)]
+struct Age(u32);
+
+#[derive(Debug, Clone)]
+struct Surname(String);
+
+#[derive(Debug, Clone)]
+struct FavoriteColour(String);
+
+impl Param for Name { }
+impl Param for Age { }
+impl Param for Surname { }
+impl Param for FavoriteColour { }
+
+// implement `Display` for each Parameter, see repo for code
+```
+
+We can now ensure that our functions consist only of "allowed types" and throw a type error when they are not by implementing this `Param` trait on argument constraints.
+
+## AvailableParams
+
+The `AvailableParams` struct, as noted before, is supposed to express the ability to take a generic `Param` and return a correct value:
+
+```rust
+trait AvailableParams {
+    fn get_param<T: Param>(&self) -> Option<T>;
+}
+```
+
+We use `Option` to allow for a parsing failure. We could alternatively panic or have some `Result`, I just used `Option` for simplicity.
+
+We now need to implement this for `App`. To do this, we need to do determine what struct `Param` actually is. There are a few ways to do this, of varying safety levels and efficiencies. One way to do this is as follows, where `T` has trait `Param`, and we are testing against type `Age`:
+
+```rust
+if let Some(res) = (Box::new(Age(self.age)) as Box<dyn Any + 'static>).downcast::<T>().ok() {
+    return Some(*res)
+}
+```
+
+The important part here is `downcast`, which takes something of type `Any` and tries to determine if it's castable to type `T`. If it is then it will be returned as that type, otherwise it will error.
+
+So basically, what this does is take `Age(self.age)`, determine if it is of type `T` (i.e. if `T` is `Age`), and if so, returns back the object as type `T` (wrapped in `Option`).
+
+Once we have the object as type `T`, we are able to return it without generating a type error.
+
+We can compress this into a macro for easy usage:
+
+```rust
+impl AvailableParams for App {
+    fn get_param<T: Param + 'static>(&self) -> Option<T> {
+        macro_rules! queryable_parameter {
+            ($expr: expr) => {
+                if let Some(res) = (Box::new($expr) as Box<dyn Any + 'static>).downcast::<T>().ok() {
+                    return Some(*res)
+                }
+            }
+        }
+
+        queryable_parameter!(Surname(self.surname.clone()));
+        queryable_parameter!(FavoriteColour(self.fav_colour.clone()));
+        queryable_parameter!(Age(self.age));
+        queryable_parameter!(Name(self.name.clone()));
+
+        return None
+    }
+}
+```
+
+I'd like to believe there's a vastly superior way of accomplishing this, but I wasn't able to find it. If you have a better approach, let me know - I am very interested!
+
+### A Note on Generics
+
+You may be pretty confused by the above, especially if you are unfamiliar with how generics actually work in Rust. You are probably thinking: How are we able to determine the type of `T` at runtime?
+
+It is important to emphasize that we are **not determining the type of `T` at runtime**. `T` does not exist at all at runtime. In fact, it is removed at compile time. This is known as [static dispatch](https://en.wikipedia.org/wiki/Static_dispatch).
+
+For those of you familiar with C++ templates, Rust generics work similarly. For demonstration, consider the following:
+
+```rust
+fn generic_fn<T>(arg: T) {
+    // ...
+}
+
+fn main() {
+    generic_fn("string");
+    generic_fn(4);
+}
+```
+
+Basically, after compilation, there will be more than one "signature" for `generic_fn`:
+
+```rust
+fn generic_fn_1(arg: String) { /* ... */ }
+fn generic_fn_2(arg: i32) { /* ... */ }
+
+fn main() {
+    // compiled from `generic_fn("string")`
+    generic_fn_1("string");
+    // compiled from `generic_fn(4)`
+    generic_fn_2(4);
+}
+```
+
+Each new "signature" for `generic_fn` has an essentially identical implementation. In this way, the original signature with generics acts as a "template" for the resulting code.
+
+Of course, this is a rather rudimentary explanation, the reality of the Rust compiler is more complex. But this is the basic idea.
+
+So now, going back to the example from earlier, the `get_param` function might have multiple "signatures" after compilation, like so:
+
+```rust
+impl AvailableParams for App {
+    fn get_param_age(&self) -> Option<Age> { /* ... */ }
+    fn get_param_name(&self) -> Option<Name> { /* ... */ }
+    // so on
+}
+```
+
+And our test from earlier might look something like so:
+
+```rust
+if let Some(res) = (Box::new(Age(self.age)) as Box<dyn Any + 'static>).downcast::<Name>().ok() {
+    return Some(*res)
+}
+```
+
+In this way, `downcast` provides one way of "matching" on which of the above implementations we are in. We can only downcast `Age` to `Age`, so we will only return `Age` in the signature of return type `Age`.
+
+Hopefully it is now clearer how compile-time templating can create the illusion of runtime type information.
+
+## ParamFunction
+
+Finally, we need to bring everything together with a trait for the functions themselves! The interface is as follows:
+
+```rust
+trait ParamFunction<Out, Params> {
+    fn run(&mut self, params: &impl AvailableParams) -> Option<Out>;
+}
+```
+
+It should be clear why we need an `Out` generic (for the return type of the function), but why should we need a `Params` generic parameter if it doesn't appear at all in the trait definition?
+
+This is simply because rust requires generic traits on `impls` to be constrained by the trait rather than the struct. In other words, if you were to try and implement `ParamFunction` for a 1-ary function like so:
+
+```rust
+impl<Out, P1: Param> ParamFunction<Out> for Func
+where Func: 
+    FnMut(P1) -> Out {
+    // ...
+}
+```
+
+Then you would get an error, because again, Rust wants the generic `P1` to be constrained by `ParamFunction` in some way, even if that constraint is purely nominal.
+
+Now implementing `ParamFunction` for 1-ary functions can be done simply as so:
+
+```rust
+impl<Out, Func, P1: Param> ParamFunction<Out, P1> for Func
+where Func:
+    FnMut(P1) -> Out
+{
+    fn run(&mut self, params: &impl AvailableParams) -> Option<Out> {
+        self(
+            params.get_param::<P1>()?,
+        ).into()
+    }
+}
+```
+
+Here, we are just calling `AvailableParams` to convert from the compile-time type of `P1`, the first and only parameter, and then passing it directly to `self`, which implements `FnMut` and is therefore a function.
+
+2-ary functions are now straight-forward as well:
+
+```rust
+impl<Out, Func, P1: Param, P2: Param> ParamFunction<Out, (P1, P2)> for Func
+where Func:
+    FnMut(P1, P2) -> Out
+{
+    fn run(&mut self, params: &impl AvailableParams) -> Option<Out> {
+        self(
+            params.get_param::<P1>()?,
+            params.get_param::<P2>()?,
+        ).into()
+    }
+}
+```
+
+This logic is identical to the 1-ary case, we just have two parameters instead of one, and pass them through to `self`, again a `FnMut` with two parameters.
+
+We can summarize the general case as a macro as so:
+
+```rust
+macro_rules! impl_param_function {
+    ($($param: ident),*) => {
+        impl<Out, Func, $($param: Param),*> ParamFunction<Out, ($($param,)*)> for Func
+        where Func:
+            FnMut($($param,)*) -> Out
+        {
+            fn run(&mut self, params: &impl AvailableParams) -> Option<Out> {
+                self(
+                    $(params.get_param::<$param>()?),*
+                ).into()
+            }
+        }
+    }
+}
+
+impl_param_function!(P1);
+impl_param_function!(P1, P2);
+impl_param_function!(P1, P2, P3);
+// and so on
+```
+
+As a challenge to you: how does this cover the nullary (0 argument) case?
+
+### The all_tuples! proc macro
+
+In the previous code block, we have to do the following for every $n$ whence we want to support $n$-ary functions:
+
+```rust
+impl_param_function!(P1);
+impl_param_function!(P1, P2);
+impl_param_function!(P1, P2, P3);
+// and so on
+```
+
+This is annoying and could be avoided with a procedural macro. In the spirit of being lazy by not being lazy, I have created a simplified version of Bevy's `all_tuples` procedural macro for this purpose:
+
+```rust
+struct AllTuples {
+    macro_ident: Ident,
+    start: usize,
+    end: usize,
+    ident: Ident,
+}
+
+impl Parse for AllTuples {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let macro_ident = input.parse::<Ident>()?;
+        input.parse::<Comma>()?;
+        let start = input.parse::<LitInt>()?.base10_parse()?;
+        input.parse::<Comma>()?;
+        let end = input.parse::<LitInt>()?.base10_parse()?;
+        input.parse::<Comma>()?;
+        let ident = input.parse::<Ident>()?;
+
+        Ok(AllTuples {
+            macro_ident,
+            start,
+            end,
+            ident,
+        })
+    }
+}
+
+#[proc_macro]
+pub fn all_tuples(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as AllTuples);
+    let ident_tuples: Vec<_> = (input.start..=input.end)
+        .map(|index| format_ident!("{}{}", input.ident, index))
+        .collect();
+
+    let macro_ident = &input.macro_ident;
+
+    let invocations = (input.start..=input.end).map(|i| {
+        let ident_tuples = &ident_tuples[..=i];
+        quote! {
+            #macro_ident!(#(#ident_tuples),*);
+        }
+    });
+    TokenStream::from(quote! {
+        #(
+            #invocations
+        )*
+    })
+}
+```
+
+The basic purpose of this macro is to expand something like:
+
+```rust
+all_tuples!(macro_name, 0, 8, P)
+```
+
+Into:
+
+```rust
+macro_name!(P0)
+macro_name!(P0, P1)
+macro_name!(P0, P1, P2)
+// ...
+macro_name!(P0, P1, P2, P3, P4, P5, P6, P7, P8)
+```
+
+If you have familiarity with procedural macros in Rust, the implementation here should be straight forward. For the rest of you, it would probably be best to read the official docs for [procedural macros](https://doc.rust-lang.org/reference/procedural-macros.html), and gain some familiarity with the [`syn` package](https://crates.io/crates/syn).
+
+Now, we can simply execute the following line to implement `ParamFunction` for all $n$-ary functions with $n \leq 16$:
+
+```rust
+all_tuples!(impl_param_function, 0, 16, P);
+```
+
+# Summary
+
+That should about do it for an overview of the code. Once again, check out [the repo I made](https://github.com/mxsdev/rust-query-functions-demo/blob/main/src/main.rs) for the complete, runnable code.
+
+I hope this was interesting, and taught you some more about Rust's type and/or macro systems!
+
+export default ({ children }) => blogPage(children, meta)
