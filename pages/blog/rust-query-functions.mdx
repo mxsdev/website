@@ -8,20 +8,38 @@ export const meta = {
 A friend of mine recently showed me the following code, which is a fairly typical usage of Bevy:
 
 ```rust
-(bevy example here)
+fn system_func(mut events: EventReader<FileDragAndDrop>) {
+    for event in events.iter() {
+        info!("{:?}", event);
+    }
+}
+
+fn main() {
+    App::new()
+        .add_system(system_func);
+        // ...
+}
 ```
 
-The following code for `function`, however, would be just as valid:
+The following code for `system_func`, however, would be just as valid:
 
 ```rust
-(bevy example function here)
+fn system_func(input: Res<Input>) {
+    println!("You typed: {}", input.0);
+}
+
+fn main() {
+    App::new()
+        .add_system(system_func);
+        // ...
+}
 ```
 
-In other words, Bevy is somehow calling these functions in such a way that the arguments can be given in any order. Moreover, some arguments can be omitted, and some can be given twice. This is pretty convenient, and helps cut down on a lot of boilerplate that might occur if a different pattern were used.
+In other words, Bevy is somehow calling these functions differently depending on their arguments, so that we can use the `system_func` function to "query" the state of the application. This is pretty convenient, and helps cut down on a lot of boilerplate.
 
-When I first saw this, I was pretty surprised. Is Bevy somehow reflecting the arguments and type information therein at runtime? I don't know of anything in Rust that allows that, at least at the raw function level, so I figured it had to be done with generics and macros.
+When I first saw this, I was pretty surprised. Is Bevy somehow reflecting the arguments and their type information at runtime? I don't know of anything in Rust that allows that, at least at the raw function level, so I figured it had to be done with generics and macros.
 
-Inspecing Bevy's codebase, and thinking about it for a while, I think I figured it out - and I put a basic demo example in a repo you can find here. (TODO: REF)
+Inspecing Bevy's codebase, and thinking about it for a while, I think I figured it out - and I put a basic demo example in a repo [you can find here](https://github.com/mxsdev/rust-query-functions-demo/blob/main/src/main.rs). 
 
 This article will go over that code demo. I hope it is interesting to you, and that you learn something more about Rust's endlessly fascinating type and macro systems!
 
@@ -88,7 +106,7 @@ fn main() {
 }
 ```
 
-Yields the following output:
+Would yield the following output:
 
 ```
 Max is 20 years old!
@@ -213,7 +231,7 @@ I'd like to believe there's a vastly superior way of accomplishing this, but I w
 
 You may be pretty confused by the above, especially if you are unfamiliar with how generics actually work in Rust. You are probably thinking: How are we able to determine the type of `T` at runtime?
 
-It is important to emphasize that we are **not determining the type of `T` at runtime**. `T` does not exist at all at runtime. In fact, it is "elided" at compile time.
+It is important to emphasize that we are **not determining the type of `T` at runtime**. `T` does not exist at all at runtime. In fact, it is removed at compile time. This is known as [static dispatch](https://en.wikipedia.org/wiki/Static_dispatch).
 
 For those of you familiar with C++ templates, Rust generics work similarly. For demonstration, consider the following:
 
@@ -432,7 +450,7 @@ macro_name!(P0, P1, P2)
 macro_name!(P0, P1, P2, P3, P4, P5, P6, P7, P8)
 ```
 
-If you have familiarity with procedural macros in Rust, the implementation here should be straight forward. For the rest of you, it would probably be best to read the official docs for procedural macros (TODO: REF), and gain some familiarity with the `syn` package (TODO: REF).
+If you have familiarity with procedural macros in Rust, the implementation here should be straight forward. For the rest of you, it would probably be best to read the official docs for [procedural macros](https://doc.rust-lang.org/reference/procedural-macros.html), and gain some familiarity with the [`syn` package](https://crates.io/crates/syn).
 
 Now, we can simply execute the following line to implement `ParamFunction` for all $n$-ary functions with $n \leq 16$:
 
@@ -442,7 +460,7 @@ all_tuples!(impl_param_function, 0, 16, P);
 
 # Summary
 
-That should about do it for an overview of the code. Once again, check out the repo I made for the complete, runnable code. (TODO: REF)
+That should about do it for an overview of the code. Once again, check out [the repo I made](https://github.com/mxsdev/rust-query-functions-demo/blob/main/src/main.rs) for the complete, runnable code.
 
 I hope this was interesting, and taught you some more about Rust's type and/or macro systems!
 

@@ -1,0 +1,262 @@
+import { blogPage } from "../../component/blog/BlogPost"
+
+export const meta = {
+    title: "Blurry Windows in egui & wgpu",
+    created: new Date("2022-12-07T22:35:08.086Z"),
+}
+
+<img src="/img/blurry-demo.gif" />
+
+{/* Some time ago, I became very interested in accomplishing blurry windows in [egui](https://github.com/emilk/egui).  */}
+
+Blurry windows pose an interesting implementation challenge, since unlike most UI elements, they require reading pixels already drawn to the screen. Because most graphics APIs don't allow you to draw to the same texture you read from, this will involve switching between at least two textures, which can be tricky.
+
+[I eventually managed to pull them off in egui](https://github.com/emilk/egui/issues/996#issuecomment-1360411973), which I present in this post. To my suprise, the biggest challenge was managing the render pipeline through egui's `PaintCallback` - the actual blurring was rather straight-forward. 
+
+To see the final code, checkout [the repo here](https://github.com/mxsdev/egui-blur-demo). I won't be going over all the code (a lot of it is essentially boilerplate anyways).
+
+Note also that this is nowhere near the most efficient approach. It is more of a "proof of concept". See the final section for thoughts on optimization.
+
+# Overview
+
+My approach involves allocating two textures: a "front" texture, which represents the main screen, and a "back" texture, which used as an intermediary. Both are the size of the screen.
+
+The blur happens in two passes. In the first pass, I perform the blur using a blur shader called `blur_rect`, reading from the front texture to the back:
+
+<img src="/img/blur_copy_1.png" />
+
+In the second pass, I copy the blurred rectangle over to the front texture:
+
+<img src="/img/blur_copy_2.png" />
+
+Then since this render pass has the front texture as a render target, I can continue drawing on the same render pass.
+
+{/* <img src="/img/blur_copy_3.png" style={{ "max-width": "400px" }} /> */}
+
+Why can't you blur directly with one render pass? First of all, you can't generally read from the same image texture onto which you're writing; wgpu, at least, will panic if you try to do this. But even if you could do that, a blur uses a range of pixels around a target. If those nearby pixels change, there is no way to know what they were originally, so the blur would not be accurate.
+
+# Blur Shader
+
+To blur the image, we need to apply a [gaussian blur](https://en.wikipedia.org/wiki/Gaussian_blur) to the image. In practice, there are two common ways I've seen this:
+
+ - Apply a [kernel](https://en.wikipedia.org/wiki/Kernel_(image_processing)) approximation of the gaussian blur
+ - Apply successive box blurs, which by the [Central Limit Theorem](https://en.wikipedia.org/wiki/Central_limit_theorem) will tend towards a normal (gaussian) distribution
+
+I'll be going with the first for simplicity - the second approach would require even more render passes.
+
+The general form for a two-dimensional gaussian blur is:
+
+$$
+G(x, y) = \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-\frac{x^2 + y^2}{2 \sigma^2}}
+$$
+
+By the ["68-95-99.7" rule](https://en.wikipedia.org/wiki/68%E2%80%9395%E2%80%9399.7_rule), this function will contribute no more than 0.3% outside of $\pm 3 \sigma$ in each dimension. In other words, it is very close to zero outside of that range, and so you can often get away with ignoring it.
+
+In shader code (wgsl):
+
+```rust
+let sigma = 9.0;
+let k = 2.0 * sigma * sigma;
+
+let size = i32(floor(sigma * 3.0));
+
+var rgba = vec4<f32>(0.0, 0.0, 0.0, 1.0);
+
+for(var i: i32 = -size; i <= size; i++) {
+    for(var j: i32 = -size; j <= size; j++) {
+        let i_f32 = f32(i);
+        let j_f32 = f32(j);
+
+        let fac = exp(-(i_f32*i_f32 + j_f32*j_f32) / k) / (pi * k);
+
+        let pos = vec2<f32>(
+            (coord_x + f32(i)) / screen.x,
+            (coord_y + f32(j)) / screen.y
+        );
+
+        let sampled = textureSample(
+            t_diffuse, s_diffuse,
+            pos
+        );
+
+        rgba += vec4<f32>(
+            sampled.x * fac,
+            sampled.y * fac,
+            sampled.z * fac,
+            0.0
+        );
+    }
+}
+```
+
+Basically, I am traversing a window of size `2 * size + 1`, multiplying each corresponding pixel by a quantity `fac`. This `fac` is just the gaussian function from earlier. All the values are accumulated in `rgba`, the output color for this pixel.
+
+I found that a an interval based on the floor worked well enough. I thought I would need to do gamma correction for the luminance I was losing, but the results were suprisingly good without.
+
+Note also that the Gaussian filter is a [separable filter](https://en.wikipedia.org/wiki/Separable_filter). This just means that if you perform a 1D Gaussian blur first in the x-direction, and then in the y-direction, the result is the same as a 2D Gaussian blur on the image. Importantly, this can improve the complexity of the blur from $O(\sigma^2)$ to $O(\sigma)$.
+
+I did not separate the filter, again for simplicity because this would require more render passes/context switching, but in a production setting I definitely would, especially for very large blur radii.
+
+# egui Code
+
+In egui, the way you run custom shaders is with a `PaintCallback`. This can be basically anything:
+
+```rust
+pub struct PaintCallback {
+    pub rect: Rect,
+    pub callback: Arc<dyn Any + Sync + Send>,
+}
+```
+
+And in the case of `egui-wgpu`, you generally use an `egui_wgpu::CallbackFn`, which provides a `prepare` and `paint` callback. 
+
+The `prepare` callback gets called before the rendering begins - this is where you allocate buffers, textures, etc.
+
+The `paint` callback gets called during an active render pass. This is where you draw triangles!
+
+This all gets wrapped up in a `Shape` like so:
+
+```rust
+Shape::Callback(PaintCallback {
+    rect,
+    callback: Arc::new(
+        egui_wgpu::CallbackFn::new()
+            .prepare(move |_device, queue, _encoder, resources| {
+                let wt = resources.get::<WindowTexture>().unwrap();
+                wt.pipeline_registry().set_rect(blur_window.rect, queue);
+
+                vec![]
+            })
+            .paint(move |_info, render_pass, resources| {
+                // ...
+            }),
+    ),
+}),
+```
+
+In the `prepare` callback, I'm setting a single uniform, which is the coordinates for the blur window's dimension. I could of course send this as vertex data if I wanted to.
+
+Notice that in the `prepare` callback, egui gives a `resources` argument, which you can use to store relevant resources such as shaders & render pipelines. This storage is usually set outside of the callback (inside your application's code) using `egui_wgpu::Renderer` like so:
+
+```rust
+let window_texture = WindowTexture::from_surface(&self.surface, &self.render_ctx);
+
+self.egui_wgpu_renderer
+    .paint_callback_resources
+    .insert(window_texture);
+```
+
+Here I am using a custom `WindowTexture` struct, which encapsulates the aforementioned "front" and "back" textures. It also holds necessary render pipelines, shaders, and manages reallocating window textures on resize. See [the file in the repo](https://github.com/mxsdev/egui-blur-demo/blob/main/src/window_texture.rs) for more details.
+
+As for the paint callback, the first render pass is done like so:
+
+```rust
+*render_pass = render_pass.encoder().begin_render_pass(
+    &RenderPassDescriptor {
+        label: None,
+        color_attachments: &[Some(
+            wgpu::RenderPassColorAttachment {
+                view: wt.back_view(),
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color {
+                        r: 0.0,
+                        g: 0.0,
+                        b: 0.0,
+                        a: 0.0,
+                    }),
+                    store: true,
+                },
+            },
+        )],
+        depth_stencil_attachment: None,
+    },
+);
+
+let min =
+    (rect.min.to_vec2() * wt.pixels_per_point() as f32).round();
+let max =
+    (rect.max.to_vec2() * wt.pixels_per_point() as f32).round();
+
+render_pass.set_viewport(
+    min.x,
+    min.y,
+    max.x - min.x,
+    max.y - min.y,
+    0.0,
+    1.0,
+);
+
+render_pass.set_pipeline(blur_rect_pipeline);
+render_pass.set_bind_group(0, blur_rect_bind_group, &[]);
+render_pass.draw(0..4, 0..1);
+```
+
+The important bit is on line 6, which selects the `back_view` texture as a target.
+
+On lines 27-34, I'm shrinking the viewport so that the shader only draws onto the blur window's area - this is necessary since the blur shader draws a quad across the entire screen.
+
+Finally, line 36 allocates the render pipeline (which holds a reference to the shader) - I'll go over the details for this later.
+
+The second pass is like so:
+
+```rust
+render_pass.begin_new_render_pass(&RenderPassDescriptor {
+    label: None,
+    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+        view: wt.view(),
+        resolve_target: None,
+        ops: wgpu::Operations {
+            load: wgpu::LoadOp::Load,
+            store: true,
+        },
+    })],
+    depth_stencil_attachment: None,
+});
+
+render_pass.set_viewport(
+    0.0,
+    0.0,
+    size.width as f32,
+    size.height as f32,
+    0.0,
+    1.0,
+);
+
+render_pass.set_pipeline(copy_back_pipeline);
+render_pass.set_bind_group(0, copy_back_bind_group, &[]);
+render_pass.draw(0..4, 0..1);
+```
+
+This simply copies over from the back view onto the front. Here, I am using the entire viewport - this could definitely be improved (see the last section for details).
+
+# A Dirty Hack
+
+Earlier, I included the following line of code:
+
+```rust
+*render_pass = render_pass.encoder().begin_render_pass(
+    // ...
+)
+```
+
+This is actually not normally supported in wgpu, and I did [some dirty hacks](https://github.com/mxsdev/egui-blur-demo/blob/main/src/util.rs) to make it work.
+
+The basic issue is that the `encoder` is privately encapsulated by the existing `render_pass`, and so cannot be accessed. Since we only have access to a `&mut RenderPass` in the callback, we cannot easily drop the existing `render_pass`.
+
+So, to solve this, I made a copy of `wgpu::RenderPass` where the encoder is exposed, and used `std::mem::transmute` to (very unsafely) convert to my version. Not great, but it works.
+
+For anyone interested, another way around this would be to use a custom `PaintCallback` that defines the dimensions of the blurry rectangle, and define the rendering in a custom shape renderer.
+
+# Improvements
+
+Overall, there are a few things I would want to improve in a production version:
+
+ - Separate the filter. This is perhaps done by splitting the back texture into two swappable textures
+ - Copy only needed pixels from back buffer to front buffer (requires uv calculations in copy shader)
+ - Find a better solution to accessing the encoder to begin a new render pass
+ - Correct gamma for the loss of luminance from non-sampled points
+
+Still, I was pretty satisfied to have made this work within the restrictions of egui!
+
+export default ({ children }) => blogPage(children, meta)

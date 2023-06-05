@@ -12,6 +12,7 @@
   "dependencies": {
     "@mdx-js/loader": "^2.1.5",
     "@mdx-js/react": "^2.1.5",
+    "@monaco-editor/react": "^4.5.1",
     "@next/mdx": "^13.0.2",
     "@radix-ui/react-icons": "^1.1.1",
     "bezier-easing": "^2.1.0",

@@ -1,15 +1,102 @@
 import type { MDXMeta } from '../../types/mdx'
-import React, { FunctionComponent } from "react"
+import React, { Component, FunctionComponent, useEffect, useRef, useState } from "react"
 import styles from "./layout.module.scss"
 import {MDXComponents} from "mdx/types"
 import { isUrl } from "../../util/matchers"
 import Link from "next/link"
 import { slug } from "../../util/slug"
-import { BsLink45Deg } from "react-icons/bs"
+import { BsLink45Deg, BsClipboard, BsClipboardCheck } from "react-icons/bs"
 import cl from "classnames"
 import BlogLayout from "./BlogLayout"
 import { HeaderLayout } from "../header/Header"
 import { MDXProvider } from '@mdx-js/react'
+import { useColorizedCode } from '../../util/code'
+
+const CodeComponent = ({ code, lang }: { code: string, lang?: string }) => {
+    const containerRef = useRef<HTMLDivElement>(null)
+    const clipboardRef = useRef<HTMLDivElement>(null)
+    const [ copyState, setCopyState ] = useState(false)
+    
+    const ClipboardIcon = copyState ? BsClipboardCheck : BsClipboard
+    
+    code = code.trim()
+    
+    const colorized = useColorizedCode(code, lang ?? '')
+
+    useEffect(() => {
+        const onHoverOff = () => {
+            setCopyState(false)
+        }
+
+        const containerCurr = containerRef.current
+        const clipboardCurr = clipboardRef.current
+
+        if (containerCurr && clipboardCurr) {
+            containerCurr.addEventListener('mouseleave', onHoverOff)
+            clipboardCurr.addEventListener('mouseleave', onHoverOff)
+
+            return () => { 
+                containerCurr.removeEventListener('mouseleave', onHoverOff) 
+                clipboardCurr.removeEventListener('mouseleave', onHoverOff)
+            }
+        }
+    }, [colorized])
+
+    if (colorized.length === 0) {
+        return <code>{code}</code>
+    }
+
+    // const codeLines = colorized.flatMap((spans, line) => {
+    //     if (spans.length === 1 && spans[0].text.trim() === '') {
+    //         spans[0].text = ' '
+    //     }
+        
+    //     let comps = spans.map(({ text, className }, i) => <span key={i} className={cl(className)}>{text}</span>)
+
+    //     return (
+    //         <span className={styles['code-tr']}>
+    //             <span className={styles['code-th']}></span>
+    //             <div> {comps} </div>
+    //         </span>
+    //     )
+    // })
+
+    // return <code className={styles['code-block-inner']}>{codeLines}</code>
+
+    const onCopy = () => { 
+        navigator.clipboard.writeText(code) 
+        setCopyState(true)
+    }
+
+    const codeLines = colorized.flatMap((spans, line) => {
+        if (spans.length === 1 && spans[0].text.trim() === '') {
+            spans[0].text = ' '
+        }
+        
+        let comps = spans.map(({ text, className }, i) => <span key={i} className={cl(className)}>{text}</span>)
+
+        return (
+            <span className={styles['code-line']}>
+                <div>
+                    {comps}
+                </div>
+            </span>
+        )
+    })
+
+    const codeNums = colorized.map((_, i) => <span key={i} className={styles['code-num']}>{i}</span>)
+
+    return <div className={(styles['code-block-inner-wrapper'])}><div className={styles['code-block-inner']} ref={containerRef}>
+        <div>
+            {codeNums}
+        </div>
+        <code className={styles['code-block-content']}>{codeLines}</code>
+    </div>
+    <div className={cl(styles['code-copy'])} onClick={onCopy} ref={clipboardRef}>
+        <ClipboardIcon size={"1.2em"} />
+    </div>
+    </div>
+}
 
 const mdxComponents: MDXComponents = {
     "h1": headerComponent("h1"),
@@ -35,6 +122,28 @@ const mdxComponents: MDXComponents = {
                 />
             )
         }
+    },
+
+    "pre": ({ children }) => {
+        if ('props' in (children as any)) {
+            const c = (children as unknown as Component).props as any
+
+            const code = c.children;
+            // const lang = c.className.splice('language-'.length, -1);
+            const lang = c.className?.slice('language-'.length);
+
+            return <pre className={styles['code-block']}><CodeComponent lang={lang} code={code} /></pre>
+        }
+        
+        return <pre>{children}</pre>
+    },
+
+    "code": ({ children, lang,  }) => {
+        if (typeof children === 'string') {
+            return <code className={styles['code-inline']}>{children}</code>
+        }
+        
+        return <code>{children}</code>
     }
 }
 
