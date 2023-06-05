@@ -244,7 +244,7 @@ This is actually not normally supported in wgpu, and I did [some dirty hacks](ht
 
 The basic issue is that the `encoder` is privately encapsulated by the existing `render_pass`, and so cannot be accessed. Since we only have access to a `&mut RenderPass` in the callback, we cannot easily drop the existing `render_pass`.
 
-So, to solve this, I made a copy of `wgpu::RenderPass` where the encoder is exposed, and used `std::mem::transmute` to (very unsafely) convert to my version. Not great, but it works.
+So, to solve this, I copied the layout of `wgpu::RenderPass` in another struct where the encoder is exposed, and used `std::mem::transmute` to (very unsafely) convert to my version. Not great, but it works.
 
 For anyone interested, another way around this would be to use a custom `PaintCallback` that defines the dimensions of the blurry rectangle, and define the rendering in a custom shape renderer.
 
