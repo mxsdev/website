@@ -1,10 +1,10 @@
-Terrence Tao recently coined this new era as a Copernican revolution in intelligence. Apparently, intelligence was not as distinctively human or supreme as we once thought. How astonished I was to hear this! I had read the same thing in Nietzsche, writing over a century ago:
+Terrence Tao recently proposed this new era to be the [_"Copernican Revolution in intelligence"_](https://arxiv.org/abs/2603.26524). Apparently, intelligence was not as distinctively human or supreme as we once thought. How astonished I was to hear this! I had read the same thing in Nietzsche, writing over a century ago:
 
-> _In some remote corner of the universe, poured out and glittering in countless solar systems, there was once a star on which clever beasts invented knowing. That was the most arrogant and mendacious minute of 'world history'_
+> _In some remote corner of the universe, poured out and glittering in countless solar systems, there was once a star on which clever beasts invented knowing. That was the most arrogant and mendacious minute of 'world history'_.
 
 Nietzsche understood that we are far, far more than _intellects_ — and in so many of our activities, intellect plays a surprisingly small part. A striking proposition: so we humans are _displaced_ — what if now as _less_ impoverished?
 
-Software engineering is now an arbitrage — it is almost certain that most senior "humans in the loop" are embarrassingly less valuable than they are being paid. It is the worst time possible to optimize for compensation and titles, because we have no clue what they will be in the next few years. If our engineers want a new _task_, it should be this — to use this ephemeral time to find a new voice compatible with this new future.
+Software engineering is now an arbitrage — it is almost certain that most senior "humans in the loop" are embarrassingly less valuable than their salaries suggest. It is the worst time possible to optimize for compensation and titles, because we have no clue what they will be in the next few years. If our engineers want a new _task_, it should be this: to use this ephemeral time to find a new voice compatible with this new future.
 
 What such new voices are available? The pro-AI voices are quite right that the anti-AI crowd is largely living in fear and burying their heads in the sand; but perhaps it _takes one to know one_. Is impetuously driving to rewrite everything in uncertain and untested technology any less driven by…_fear_? And fear of the same thing! What is certain: grand outcomes will precipitate no less from grand _courage_ in this new era than from the old one; and grand courage has no less its characteristic symptoms of _calm and steadiness_, a scarce commodity today.
 
