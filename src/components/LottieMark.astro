@@ -2,12 +2,18 @@
 interface Props {
   src: string;
   class?: string;
+  /** When false, jump straight to the final frame. */
+  play?: boolean;
 }
 
-const { src, class: className } = Astro.props;
+const { src, class: className, play = true } = Astro.props;
 ---
 
-<div class:list={["lottie-mark", className]} data-lottie-src={src}></div>
+<div
+  class:list={["lottie-mark", className]}
+  data-lottie-src={src}
+  data-lottie-play={play ? "1" : "0"}
+></div>
 
 <script>
   import lottie from "lottie-web";
@@ -18,6 +24,8 @@ const { src, class: className } = Astro.props;
     const src = el.dataset.lottieSrc;
     if (!src || el.dataset.mounted === "1") return;
     el.dataset.mounted = "1";
+
+    const shouldPlay = el.dataset.lottiePlay !== "0";
 
     const anim = lottie.loadAnimation({
       container: el,
@@ -30,9 +38,15 @@ const { src, class: className } = Astro.props;
     anim.setSubframe(false);
 
     anim.addEventListener("DOMLoaded", () => {
+      const last = Math.max(0, anim.totalFrames - 1);
+
+      if (!shouldPlay) {
+        anim.goToAndStop(last, true);
+        return;
+      }
+
       const sourceFps = anim.frameRate || 60;
       const step = sourceFps / TARGET_FPS;
-      const last = Math.max(0, anim.totalFrames - 1);
       let frame = 0;
 
       const tick = () => {

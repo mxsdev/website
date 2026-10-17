@@ -6,10 +6,13 @@ import { Content } from "../../content/towards-craftsmanship.md";
 
 <Base title="Towards Craftsmanship in AI Engineering — mxs.dev">
   <a class="home-mark" href="/" aria-label="mxs.dev home">
-    <LottieMark src="/lottie/mxsdev.json" class="mark-nav" />
+    <LottieMark src="/lottie/mxsdev.json" class="mark-nav" play={false} />
   </a>
   <main class="post">
     <div class="column">
+      <p class="back">
+        <a href="/">← mxs.dev</a>
+      </p>
       <h1>Towards Craftsmanship in AI Engineering</h1>
       <p class="byline">Max Stoumen · October 19, 2026</p>
       <div class="body">
@@ -48,12 +51,28 @@ import { Content } from "../../content/towards-craftsmanship.md";
     margin: 0 auto;
   }
 
+  .back {
+    margin: 0;
+    font-family: "Ogg", Georgia, serif;
+    font-size: 1rem;
+  }
+
+  .back a {
+    text-decoration: none;
+    letter-spacing: 0.04em;
+  }
+
+  .back a:hover,
+  .back a:focus {
+    text-decoration: underline;
+  }
+
   h1 {
     text-align: left;
     font-size: clamp(2.25rem, 5vw, 3rem);
     font-weight: bold;
     font-family: "Ogg", Georgia, serif;
-    margin: 3rem 0 0;
+    margin: 2rem 0 0;
     line-height: 1.3;
   }
 
