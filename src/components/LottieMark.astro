@@ -4,21 +4,80 @@ interface Props {
   class?: string;
   /** When false, jump straight to the final frame. */
   play?: boolean;
+  /** After intro completes, hover plays inverted draw-off + staggered draw-on. */
+  hoverRewrite?: boolean;
 }
 
-const { src, class: className, play = true } = Astro.props;
+const { src, class: className, play = true, hoverRewrite = false } = Astro.props;
 ---
 
 <div
   class:list={["lottie-mark", className]}
   data-lottie-src={src}
   data-lottie-play={play ? "1" : "0"}
+  data-lottie-hover-rewrite={hoverRewrite ? "1" : "0"}
 ></div>
 
 <script>
-  import lottie from "lottie-web";
+  import lottie, { type AnimationItem } from "lottie-web";
 
   const TARGET_FPS = 12;
+  const STAGGER_FRAMES = 4;
+
+  type AnimData = {
+    layers: Array<{ tt?: number }>;
+    [key: string]: unknown;
+  };
+
+  function invertMattes(data: AnimData): AnimData {
+    const clone = structuredClone(data);
+    for (const layer of clone.layers) {
+      if (layer.tt === 1) layer.tt = 2;
+      else if (layer.tt === 2) layer.tt = 1;
+      else if (layer.tt === 3) layer.tt = 4;
+      else if (layer.tt === 4) layer.tt = 3;
+    }
+    return clone;
+  }
+
+  function whenDomLoaded(anim: AnimationItem) {
+    return new Promise<void>((resolve) => {
+      if ((anim as AnimationItem & { isLoaded?: boolean }).isLoaded) {
+        resolve();
+        return;
+      }
+      anim.addEventListener("DOMLoaded", () => resolve());
+    });
+  }
+
+  function playPosterized(anim: AnimationItem, onComplete?: () => void) {
+    const sourceFps = anim.frameRate || 60;
+    const step = sourceFps / TARGET_FPS;
+    const last = Math.max(0, anim.totalFrames - 1);
+    let frame = 0;
+
+    const tick = () => {
+      const snapped = Math.min(Math.floor(frame / step) * step, last);
+      anim.goToAndStop(snapped, true);
+      frame += step;
+      if (snapped >= last) {
+        clearInterval(timer);
+        anim.goToAndStop(last, true);
+        onComplete?.();
+      }
+    };
+
+    const timer = setInterval(tick, 1000 / TARGET_FPS);
+    tick();
+    return () => clearInterval(timer);
+  }
+
+  function makeLayer(parent: HTMLElement) {
+    const layer = document.createElement("div");
+    layer.className = "lottie-layer";
+    parent.appendChild(layer);
+    return layer;
+  }
 
   function mount(el: HTMLElement) {
     const src = el.dataset.lottieSrc;
@@ -26,9 +85,22 @@ const { src, class: className, play = true } = Astro.props;
     el.dataset.mounted = "1";
 
     const shouldPlay = el.dataset.lottiePlay !== "0";
+    const hoverRewrite = el.dataset.lottieHoverRewrite === "1";
+
+    let animData: AnimData | null = null;
+    let complete = false;
+    let rewriting = false;
+
+    async function loadData() {
+      if (animData) return animData;
+      animData = (await fetch(src).then((r) => r.json())) as AnimData;
+      return animData;
+    }
+
+    const baseLayer = makeLayer(el);
 
     const anim = lottie.loadAnimation({
-      container: el,
+      container: baseLayer,
       renderer: "svg",
       loop: false,
       autoplay: false,
@@ -37,30 +109,69 @@ const { src, class: className, play = true } = Astro.props;
 
     anim.setSubframe(false);
 
+    function armHoverRewrite() {
+      if (!hoverRewrite) return;
+
+      el.addEventListener("mouseenter", async () => {
+        if (!complete || rewriting) return;
+        rewriting = true;
+        complete = false;
+
+        const data = await loadData();
+        anim.destroy();
+        el.replaceChildren();
+
+        const offLayer = makeLayer(el);
+        const onLayer = makeLayer(el);
+
+        const offAnim = lottie.loadAnimation({
+          container: offLayer,
+          renderer: "svg",
+          loop: false,
+          autoplay: false,
+          animationData: invertMattes(data),
+        });
+        offAnim.setSubframe(false);
+
+        const onAnim = lottie.loadAnimation({
+          container: onLayer,
+          renderer: "svg",
+          loop: false,
+          autoplay: false,
+          animationData: structuredClone(data),
+        });
+        onAnim.setSubframe(false);
+
+        await Promise.all([whenDomLoaded(offAnim), whenDomLoaded(onAnim)]);
+
+        // Hold draw-on at frame 0 (hidden) until stagger; draw-off starts now.
+        onAnim.goToAndStop(0, true);
+        playPosterized(offAnim);
+
+        window.setTimeout(() => {
+          playPosterized(onAnim, () => {
+            offAnim.destroy();
+            offLayer.remove();
+            rewriting = false;
+            complete = true;
+          });
+        }, (1000 / TARGET_FPS) * STAGGER_FRAMES);
+      });
+    }
+
     anim.addEventListener("DOMLoaded", () => {
       const last = Math.max(0, anim.totalFrames - 1);
 
       if (!shouldPlay) {
         anim.goToAndStop(last, true);
+        complete = true;
         return;
       }
 
-      const sourceFps = anim.frameRate || 60;
-      const step = sourceFps / TARGET_FPS;
-      let frame = 0;
-
-      const tick = () => {
-        const snapped = Math.min(Math.floor(frame / step) * step, last);
-        anim.goToAndStop(snapped, true);
-        frame += step;
-        if (snapped >= last) {
-          clearInterval(timer);
-          anim.goToAndStop(last, true);
-        }
-      };
-
-      const timer = setInterval(tick, 1000 / TARGET_FPS);
-      tick();
+      playPosterized(anim, () => {
+        complete = true;
+        armHoverRewrite();
+      });
     });
   }
 
@@ -76,9 +187,17 @@ const { src, class: className, play = true } = Astro.props;
 
 <style>
   .lottie-mark {
+    position: relative;
     width: min(100%, 36rem);
     aspect-ratio: 1509 / 490;
     margin-inline: auto;
+  }
+
+  .lottie-mark :global(.lottie-layer) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
   }
 
   .lottie-mark :global(svg) {
