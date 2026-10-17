@@ -6,6 +6,8 @@ const posts = [
   {
     title: "Towards Craftsmanship in AI Engineering",
     href: "/blog/towards-craftsmanship-in-ai-engineering",
+    date: "October 19, 2026",
+    datetime: "2026-10-19",
   },
 ];
 ---
@@ -25,6 +27,7 @@ const posts = [
         posts.map((post) => (
           <li>
             <a href={post.href}>{post.title}</a>
+            <time datetime={post.datetime}>{post.date}</time>
           </li>
         ))
       }
@@ -100,5 +103,15 @@ const posts = [
   .post-list a:focus {
     text-decoration: underline;
     font-weight: 500;
+  }
+
+  .post-list time {
+    display: block;
+    margin-top: 0.35rem;
+    font-family: "Ogg Text", Georgia, serif;
+    font-weight: 300;
+    font-size: 0.85rem;
+    color: #666;
+    letter-spacing: 0.02em;
   }
 </style>
