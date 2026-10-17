@@ -5,11 +5,11 @@ import { Content } from "../../content/towards-craftsmanship.md";
 ---
 
 <Base title="Towards Craftsmanship in AI Engineering — mxs.dev">
+  <a class="home-mark" href="/" aria-label="mxs.dev home">
+    <LottieMark src="/lottie/mxsdev.json" class="mark-nav" />
+  </a>
   <main class="post">
     <div class="column">
-      <a class="home-mark" href="/" aria-label="mxs.dev home">
-        <LottieMark src="/lottie/mxsdev.json" class="mark-nav" />
-      </a>
       <h1>Towards Craftsmanship in AI Engineering</h1>
       <p class="byline">Max Stoumen · October 19, 2026</p>
       <div class="body">
@@ -20,6 +20,22 @@ import { Content } from "../../content/towards-craftsmanship.md";
 </Base>
 
 <style>
+  .home-mark {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 10;
+    display: block;
+    width: fit-content;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .home-mark :global(.mark-nav) {
+    width: 5.5rem;
+    margin-inline: 0;
+  }
+
   .post {
     background-color: #fff;
     color: #000;
@@ -30,18 +46,6 @@ import { Content } from "../../content/towards-craftsmanship.md";
   .column {
     max-width: 32rem;
     margin: 0 auto;
-  }
-
-  .home-mark {
-    display: block;
-    width: fit-content;
-    text-decoration: none;
-    color: inherit;
-  }
-
-  .home-mark :global(.mark-nav) {
-    width: 11rem;
-    margin-inline: 0;
   }
 
   h1 {
