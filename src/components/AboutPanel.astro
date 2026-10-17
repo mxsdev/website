@@ -39,14 +39,20 @@
 <script>
   const FPS = 12;
   const FRAME_MS = 1000 / FPS;
-  const FRAMES = 7;
+  const FRAMES = 12;
+  const SLIDE_REM = 1.35;
+
+  /** Hard ease-out so each 12fps step lands with a visible jump. */
+  function easeOutQuint(t: number) {
+    return 1 - Math.pow(1 - t, 5);
+  }
 
   function posterize(apply: (t: number) => void, onDone?: () => void) {
     let i = 0;
-    apply(0);
+    apply(easeOutQuint(0));
     const id = setInterval(() => {
       i += 1;
-      apply(i / FRAMES);
+      apply(easeOutQuint(i / FRAMES));
       if (i >= FRAMES) {
         clearInterval(id);
         onDone?.();
@@ -77,7 +83,7 @@
     const setVisual = (p: number, targetHeight: number) => {
       panel.style.height = `${targetHeight * p}px`;
       inner.style.opacity = String(p);
-      inner.style.transform = `translateY(${(1 - p) * -0.55}rem)`;
+      inner.style.transform = `translateY(${(1 - p) * -SLIDE_REM}rem)`;
       if (chevron) chevron.style.transform = `rotate(${p * 90}deg)`;
     };
 
@@ -91,7 +97,7 @@
         const targetHeight = measureOpenHeight(panel, inner);
 
         running = posterize(
-          (t) => setVisual(t, targetHeight),
+          (p) => setVisual(p, targetHeight),
           () => {
             panel.style.height = "auto";
             running = null;
@@ -104,8 +110,9 @@
         const targetHeight = measureOpenHeight(panel, inner);
         panel.style.height = `${targetHeight}px`;
 
+        // Ease-in on close = reverse of ease-out open (big early collapse).
         running = posterize(
-          (t) => setVisual(1 - t, targetHeight),
+          (p) => setVisual(1 - p, targetHeight),
           () => {
             panel.style.height = "0px";
             running = null;
@@ -186,7 +193,7 @@
   .about-panel-inner {
     padding-top: 1.25rem;
     opacity: 0;
-    transform: translateY(-0.55rem);
+    transform: translateY(-1.35rem);
   }
 
   .about-panel-inner p {
