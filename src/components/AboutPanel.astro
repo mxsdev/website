@@ -20,24 +20,26 @@
     id="about-panel"
     class="about-panel"
     data-about-panel
-    hidden
     role="region"
     aria-label="About"
+    aria-hidden="true"
   >
-    <p>
-      software artisan of the physical world. interested in classical
-      counterpoint,
-      <a href="https://en.wikipedia.org/wiki/Lebensphilosophie"
-        >lebensphilosophie</a
-      >, mathematics of sheaves and germs
-    </p>
+    <div class="about-panel-inner" data-about-inner>
+      <p>
+        software artisan of the physical world. interested in classical
+        counterpoint,
+        <a href="https://en.wikipedia.org/wiki/Lebensphilosophie"
+          >lebensphilosophie</a
+        >, mathematics of sheaves and germs
+      </p>
+    </div>
   </div>
 </div>
 
 <script>
   const FPS = 12;
   const FRAME_MS = 1000 / FPS;
-  const FRAMES = 5;
+  const FRAMES = 7;
 
   function posterize(apply: (t: number) => void, onDone?: () => void) {
     let i = 0;
@@ -53,20 +55,29 @@
     return id;
   }
 
+  function measureOpenHeight(panel: HTMLElement, inner: HTMLElement) {
+    const prev = panel.style.height;
+    panel.style.height = "auto";
+    const h = inner.getBoundingClientRect().height;
+    panel.style.height = prev;
+    return h;
+  }
+
   function mount() {
     const toggle = document.querySelector<HTMLButtonElement>("[data-about-toggle]");
     const panel = document.querySelector<HTMLElement>("[data-about-panel]");
-    if (!toggle || !panel || toggle.dataset.bound === "1") return;
+    const inner = document.querySelector<HTMLElement>("[data-about-inner]");
+    if (!toggle || !panel || !inner || toggle.dataset.bound === "1") return;
     toggle.dataset.bound = "1";
 
     let open = false;
     let running: ReturnType<typeof setInterval> | null = null;
     const chevron = toggle.querySelector<HTMLElement>(".chevron");
 
-    const setVisual = (t: number, opening: boolean) => {
-      const p = opening ? t : 1 - t;
-      panel.style.opacity = String(p);
-      panel.style.transform = `translateY(${(1 - p) * -0.45}rem)`;
+    const setVisual = (p: number, targetHeight: number) => {
+      panel.style.height = `${targetHeight * p}px`;
+      inner.style.opacity = String(p);
+      inner.style.transform = `translateY(${(1 - p) * -0.55}rem)`;
       if (chevron) chevron.style.transform = `rotate(${p * 90}deg)`;
     };
 
@@ -76,17 +87,30 @@
       if (!open) {
         open = true;
         toggle.setAttribute("aria-expanded", "true");
-        panel.hidden = false;
-        running = posterize((t) => setVisual(t, true), () => {
-          running = null;
-        });
+        panel.setAttribute("aria-hidden", "false");
+        const targetHeight = measureOpenHeight(panel, inner);
+
+        running = posterize(
+          (t) => setVisual(t, targetHeight),
+          () => {
+            panel.style.height = "auto";
+            running = null;
+          },
+        );
       } else {
         open = false;
         toggle.setAttribute("aria-expanded", "false");
-        running = posterize((t) => setVisual(t, false), () => {
-          panel.hidden = true;
-          running = null;
-        });
+        panel.setAttribute("aria-hidden", "true");
+        const targetHeight = measureOpenHeight(panel, inner);
+        panel.style.height = `${targetHeight}px`;
+
+        running = posterize(
+          (t) => setVisual(1 - t, targetHeight),
+          () => {
+            panel.style.height = "0px";
+            running = null;
+          },
+        );
       }
     });
   }
@@ -155,20 +179,17 @@
 
   .about-panel {
     width: min(100%, 28rem);
-    margin: 1.25rem auto 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+  .about-panel-inner {
+    padding-top: 1.25rem;
     opacity: 0;
-    transform: translateY(-0.45rem);
+    transform: translateY(-0.55rem);
   }
 
-  .about-panel[hidden] {
-    display: none;
-  }
-
-  .about-panel:not([hidden]) {
-    display: block;
-  }
-
-  .about-panel p {
+  .about-panel-inner p {
     margin: 0;
     font-family: "Ogg Text", Georgia, serif;
     font-weight: 300;
@@ -179,14 +200,14 @@
     color: #333;
   }
 
-  .about-panel a {
+  .about-panel-inner a {
     color: inherit;
     text-decoration: underline;
     text-underline-offset: 0.12em;
   }
 
-  .about-panel a:hover,
-  .about-panel a:focus {
+  .about-panel-inner a:hover,
+  .about-panel-inner a:focus {
     color: #000;
   }
 </style>
