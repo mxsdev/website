@@ -1,4 +1,5 @@
 ---
+
 ---
 
 <div class="about-wrap">
@@ -26,7 +27,7 @@
   >
     <div class="about-panel-inner" data-about-inner>
       <p>
-        software artisan of the physical world. interested in classical
+        building software for the physical world. interested in classical
         counterpoint,{" "}
         <a href="https://en.wikipedia.org/wiki/Lebensphilosophie"
           >lebensphilosophie</a
@@ -72,7 +73,9 @@
   }
 
   function mount() {
-    const toggle = document.querySelector<HTMLButtonElement>("[data-about-toggle]");
+    const toggle = document.querySelector<HTMLButtonElement>(
+      "[data-about-toggle]",
+    );
     const panel = document.querySelector<HTMLElement>("[data-about-panel]");
     const inner = document.querySelector<HTMLElement>("[data-about-inner]");
     if (!toggle || !panel || !inner || toggle.dataset.bound === "1") return;
