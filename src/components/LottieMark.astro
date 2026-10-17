@@ -12,6 +12,8 @@ const { src, class: className } = Astro.props;
 <script>
   import lottie from "lottie-web";
 
+  const TARGET_FPS = 12;
+
   function mount(el: HTMLElement) {
     const src = el.dataset.lottieSrc;
     if (!src || el.dataset.mounted === "1") return;
@@ -21,12 +23,30 @@ const { src, class: className } = Astro.props;
       container: el,
       renderer: "svg",
       loop: false,
-      autoplay: true,
+      autoplay: false,
       path: src,
     });
 
-    anim.addEventListener("complete", () => {
-      anim.goToAndStop(anim.totalFrames - 1, true);
+    anim.setSubframe(false);
+
+    anim.addEventListener("DOMLoaded", () => {
+      const sourceFps = anim.frameRate || 60;
+      const step = sourceFps / TARGET_FPS;
+      const last = Math.max(0, anim.totalFrames - 1);
+      let frame = 0;
+
+      const tick = () => {
+        const snapped = Math.min(Math.floor(frame / step) * step, last);
+        anim.goToAndStop(snapped, true);
+        frame += step;
+        if (snapped >= last) {
+          clearInterval(timer);
+          anim.goToAndStop(last, true);
+        }
+      };
+
+      const timer = setInterval(tick, 1000 / TARGET_FPS);
+      tick();
     });
   }
 
