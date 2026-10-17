@@ -165,6 +165,7 @@ const { src, class: className, play = true, hoverRewrite = false } = Astro.props
       if (!shouldPlay) {
         anim.goToAndStop(last, true);
         complete = true;
+        armHoverRewrite();
         return;
       }
 
