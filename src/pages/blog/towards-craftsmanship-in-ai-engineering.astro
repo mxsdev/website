@@ -5,13 +5,15 @@ import { Content } from "../../content/towards-craftsmanship.md";
 
 <Base title="Towards Craftsmanship in AI Engineering — mxs.dev">
   <main class="post">
-    <p class="back">
-      <a href="/">← mxs.dev</a>
-    </p>
-    <h1>Towards Craftsmanship in AI Engineering</h1>
-    <p class="byline">Max Stoumen · October 19, 2026</p>
-    <div class="inner-content">
-      <Content />
+    <div class="column">
+      <p class="back">
+        <a href="/">← mxs.dev</a>
+      </p>
+      <h1>Towards Craftsmanship in AI Engineering</h1>
+      <p class="byline">Max Stoumen · October 19, 2026</p>
+      <div class="body">
+        <Content />
+      </div>
     </div>
   </main>
 </Base>
@@ -19,15 +21,18 @@ import { Content } from "../../content/towards-craftsmanship.md";
 <style>
   .post {
     background-color: #fff;
-    padding-left: 1rem;
-    padding-right: 1rem;
     color: #000;
-    padding-bottom: 6rem;
+    padding: 2rem 1.25rem 6rem;
+    box-sizing: border-box;
+  }
+
+  .column {
+    max-width: 32rem;
+    margin: 0 auto;
   }
 
   .back {
-    max-width: 32rem;
-    margin: 2rem auto 0;
+    margin: 0;
     font-family: "Ogg", Georgia, serif;
     font-size: 1rem;
   }
@@ -42,77 +47,72 @@ import { Content } from "../../content/towards-craftsmanship.md";
     text-decoration: underline;
   }
 
-  .post :global(a),
-  .post :global(a:visited),
-  .post :global(a:active) {
+  h1 {
+    text-align: left;
+    font-size: clamp(2.25rem, 5vw, 3rem);
+    font-weight: bold;
+    font-family: "Ogg", Georgia, serif;
+    margin: 3rem 0 0;
+    line-height: 1.3;
+  }
+
+  .byline {
+    margin: 1rem 0 0;
+    font-family: "Ogg Text", Georgia, serif;
+    font-weight: 300;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    color: #444;
+  }
+
+  .body {
+    margin-top: 2.5rem;
+  }
+
+  .body :global(a),
+  .body :global(a:visited),
+  .body :global(a:active) {
     color: #000;
   }
 
-  .post :global(a:hover),
-  .post :global(a:focus) {
+  .body :global(a:hover),
+  .body :global(a:focus) {
     color: #444;
     text-decoration: underline;
   }
 
-  .post :global(a) {
+  .body :global(a) {
     font-weight: 400;
   }
 
-  .post :global(em) {
+  .body :global(em) {
     font-style: italic;
   }
 
-  .post :global(blockquote) {
+  .body :global(blockquote) {
     margin: 1.75rem 0;
     padding-left: 1.25rem;
     border-left: 1px solid #ccc;
     font-style: italic;
   }
 
-  .post :global(h1),
-  .post :global(h2),
-  .post :global(h3),
-  .post :global(h4),
-  .post :global(h5),
-  .post :global(h6) {
+  .body :global(h2),
+  .body :global(h3),
+  .body :global(h4),
+  .body :global(h5),
+  .body :global(h6) {
     font-family: "Ogg", Georgia, serif;
   }
 
-  .post :global(h2) {
+  .body :global(h2) {
     font-size: 1.5rem;
     font-weight: 500;
     margin-top: 3rem;
     margin-bottom: 1rem;
   }
 
-  .post :global(p) {
+  .body :global(p) {
     line-height: 1.65;
     margin: 0 0 2rem;
-  }
-
-  .inner-content {
-    max-width: 32rem;
-    margin: 2.5rem auto 0;
-  }
-
-  .post > h1 {
-    width: 100%;
-    text-align: left;
-    font-size: clamp(4rem, 5vw, 3em);
-    font-weight: bold;
-    font-family: "Ogg", Georgia, serif;
-    margin: 3rem auto 0;
-    line-height: 1.35em;
-    max-width: 32rem;
-  }
-
-  .byline {
-    max-width: 32rem;
-    margin: 1rem auto 0;
-    font-family: "Ogg Text", Georgia, serif;
-    font-weight: 300;
-    font-size: 0.95rem;
-    letter-spacing: 0.02em;
-    color: #444;
   }
 </style>
