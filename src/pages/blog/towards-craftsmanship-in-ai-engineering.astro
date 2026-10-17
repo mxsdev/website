@@ -1,14 +1,15 @@
 ---
 import Base from "../../layouts/Base.astro";
+import LottieMark from "../../components/LottieMark.astro";
 import { Content } from "../../content/towards-craftsmanship.md";
 ---
 
 <Base title="Towards Craftsmanship in AI Engineering — mxs.dev">
   <main class="post">
     <div class="column">
-      <p class="back">
-        <a href="/">← mxs.dev</a>
-      </p>
+      <a class="home-mark" href="/" aria-label="mxs.dev home">
+        <LottieMark src="/lottie/mxsdev.json" class="mark-nav" />
+      </a>
       <h1>Towards Craftsmanship in AI Engineering</h1>
       <p class="byline">Max Stoumen · October 19, 2026</p>
       <div class="body">
@@ -31,20 +32,16 @@ import { Content } from "../../content/towards-craftsmanship.md";
     margin: 0 auto;
   }
 
-  .back {
-    margin: 0;
-    font-family: "Ogg", Georgia, serif;
-    font-size: 1rem;
-  }
-
-  .back a {
+  .home-mark {
+    display: block;
+    width: fit-content;
     text-decoration: none;
-    letter-spacing: 0.04em;
+    color: inherit;
   }
 
-  .back a:hover,
-  .back a:focus {
-    text-decoration: underline;
+  .home-mark :global(.mark-nav) {
+    width: 11rem;
+    margin-inline: 0;
   }
 
   h1 {
