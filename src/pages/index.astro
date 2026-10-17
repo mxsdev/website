@@ -18,7 +18,18 @@ const posts = [
     <LottieMark src="/lottie/mxsdev.json" class="mark" />
 
     <AboutPanel>
-      <span>23</span>
+      <span
+        ><script is:inline>
+          (() => {
+            const birth = new Date(2003, 1, 5); // Feb 5, 2003
+            const now = new Date();
+            let age = now.getFullYear() - birth.getFullYear();
+            const m = now.getMonth() - birth.getMonth();
+            if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+            document.currentScript.parentElement.textContent = String(age);
+          })();
+        </script></span
+      >
       <span>no degree</span>
       <span>senior eng @ <a href="https://miter.com">Miter</a></span>
     </AboutPanel>
