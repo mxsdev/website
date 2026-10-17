@@ -1,0 +1,93 @@
+---
+import Base from "../layouts/Base.astro";
+import LottieMark from "../components/LottieMark.astro";
+
+const posts = [
+  {
+    title: "Towards Craftsmanship in AI Engineering",
+    href: "/blog/towards-craftsmanship-in-ai-engineering",
+  },
+];
+---
+
+<Base title="mxs.dev">
+  <main class="home">
+    <LottieMark src="/lottie/mxsdev.json" class="mark" />
+
+    <p class="tagline">
+      <span>23</span>
+      <span>no degree</span>
+      <span>senior eng @ Miter</span>
+    </p>
+
+    <ul class="post-list">
+      {
+        posts.map((post) => (
+          <li>
+            <a href={post.href}>{post.title}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </main>
+</Base>
+
+<style>
+  .home {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4rem 1.25rem 5rem;
+    box-sizing: border-box;
+  }
+
+  .mark {
+    width: min(100%, 28rem);
+  }
+
+  .tagline {
+    font-family: "Ogg", Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(1rem, 2.5vw, 1.35rem);
+    letter-spacing: 0.02em;
+    text-align: center;
+    margin: 2rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    column-gap: 2.5rem;
+    row-gap: 0.5rem;
+  }
+
+  .post-list {
+    list-style: none;
+    margin: 4rem auto 0;
+    padding: 0;
+    max-width: 32rem;
+    width: 100%;
+  }
+
+  .post-list li {
+    margin-bottom: 1.25rem;
+  }
+
+  .post-list li:last-child {
+    margin-bottom: 0;
+  }
+
+  .post-list a {
+    font-family: "Ogg", Georgia, serif;
+    font-weight: 400;
+    font-size: 1.25rem;
+    color: #000;
+    text-decoration: none;
+    letter-spacing: 0.04em;
+  }
+
+  .post-list a:hover,
+  .post-list a:focus {
+    text-decoration: underline;
+    font-weight: 500;
+  }
+</style>

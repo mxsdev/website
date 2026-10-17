@@ -1,0 +1,167 @@
+---
+interface Props {
+  title?: string;
+}
+
+const { title = "mxs.dev" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <style is:global>
+      @font-face {
+        font-family: "Ogg Text";
+        src: url("/font/OggText-Light.woff2") format("woff2");
+        font-weight: 300;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg Text";
+        src: url("/font/OggText-LightItalic.woff2") format("woff2");
+        font-weight: 300;
+        font-style: italic;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg Text";
+        src: url("/font/OggText-Book.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg Text";
+        src: url("/font/OggText-BookItalic.woff2") format("woff2");
+        font-weight: 400;
+        font-style: italic;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg Text";
+        src: url("/font/OggText-Medium.woff2") format("woff2");
+        font-weight: 500;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg Text";
+        src: url("/font/OggText-MediumItalic.woff2") format("woff2");
+        font-weight: 500;
+        font-style: italic;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg Text";
+        src: url("/font/OggText-Bold.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg Text";
+        src: url("/font/OggText-BoldItalic.woff2") format("woff2");
+        font-weight: 700;
+        font-style: italic;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Ogg";
+        src: url("/font/Ogg-Thin.woff2") format("woff2");
+        font-weight: 100;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg";
+        src: url("/font/Ogg-ThinItalic.woff2") format("woff2");
+        font-weight: 100;
+        font-style: italic;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg";
+        src: url("/font/Ogg-Light.woff2") format("woff2");
+        font-weight: 300;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg";
+        src: url("/font/Ogg-LightItalic.woff2") format("woff2");
+        font-weight: 300;
+        font-style: italic;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg";
+        src: url("/font/Ogg-Regular.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg";
+        src: url("/font/Ogg-Italic.woff2") format("woff2");
+        font-weight: 400;
+        font-style: italic;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg";
+        src: url("/font/Ogg-Medium.woff2") format("woff2");
+        font-weight: 500;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg";
+        src: url("/font/Ogg-MediumItalic.woff2") format("woff2");
+        font-weight: 500;
+        font-style: italic;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg";
+        src: url("/font/Ogg-Bold.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Ogg";
+        src: url("/font/Ogg-BoldItalic.woff2") format("woff2");
+        font-weight: 700;
+        font-style: italic;
+        font-display: swap;
+      }
+
+      html {
+        font-family: "Ogg Text", Georgia, serif;
+        font-weight: 300;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        background-color: #fff;
+        color: #000;
+      }
+
+      a {
+        color: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

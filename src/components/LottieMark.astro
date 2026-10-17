@@ -1,0 +1,55 @@
+---
+interface Props {
+  src: string;
+  class?: string;
+}
+
+const { src, class: className } = Astro.props;
+---
+
+<div class:list={["lottie-mark", className]} data-lottie-src={src}></div>
+
+<script>
+  import lottie from "lottie-web";
+
+  function mount(el: HTMLElement) {
+    const src = el.dataset.lottieSrc;
+    if (!src || el.dataset.mounted === "1") return;
+    el.dataset.mounted = "1";
+
+    const anim = lottie.loadAnimation({
+      container: el,
+      renderer: "svg",
+      loop: false,
+      autoplay: true,
+      path: src,
+    });
+
+    anim.addEventListener("complete", () => {
+      anim.goToAndStop(anim.totalFrames - 1, true);
+    });
+  }
+
+  function mountAll() {
+    document
+      .querySelectorAll<HTMLElement>("[data-lottie-src]")
+      .forEach(mount);
+  }
+
+  mountAll();
+  document.addEventListener("astro:page-load", mountAll);
+</script>
+
+<style>
+  .lottie-mark {
+    width: min(100%, 36rem);
+    aspect-ratio: 1509 / 490;
+    margin-inline: auto;
+  }
+
+  .lottie-mark :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>
