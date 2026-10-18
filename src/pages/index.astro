@@ -20,7 +20,22 @@ const posts: {
 }[] = [];
 ---
 
-<Base title="mxs">
+<Base
+  title="mxs"
+  description="Max Stoumen — software artisan of the physical world. Senior eng at Miter."
+  canonicalPath="/"
+  ogType="website"
+>
+  <script type="application/ld+json" is:inline set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: "Max Stoumen",
+    url: "https://www.mxs.dev/",
+    email: "max@mxs.dev",
+    jobTitle: "Senior Engineer",
+    worksFor: { "@type": "Organization", name: "Miter", url: "https://miter.com" },
+    sameAs: ["https://www.linkedin.com/in/mxsdev/", "https://github.com/mxsdev"],
+  })} />
   <main class="home">
     <LottieMark src="/lottie/mxsdev.json" class="mark" hoverRewrite />
 
