@@ -42,7 +42,7 @@ const robots = noindex ? "noindex, nofollow" : "index, follow";
 
     <title>{title}</title>
 
-    <!-- Critical body faces: fetch early; optional display avoids mid-page font swap flash. -->
+    <!-- Critical body faces: fetch early so swap happens ASAP. -->
     <link
       rel="preload"
       href="/font/OggText-Light.woff2"
@@ -79,20 +79,19 @@ const robots = noindex ? "noindex, nofollow" : "index, follow";
     <meta name="twitter:image" content={imageUrl} />
 
     <style is:global>
-      /* font-display: optional — use Ogg if ready quickly, else stick with Georgia (no late swap). */
       @font-face {
         font-family: "Ogg Text";
         src: url("/font/OggText-Light.woff2") format("woff2");
         font-weight: 300;
         font-style: normal;
-        font-display: optional;
+        font-display: swap;
       }
       @font-face {
         font-family: "Ogg Text";
         src: url("/font/OggText-LightItalic.woff2") format("woff2");
         font-weight: 300;
         font-style: italic;
-        font-display: optional;
+        font-display: swap;
       }
 
       @font-face {
@@ -100,28 +99,28 @@ const robots = noindex ? "noindex, nofollow" : "index, follow";
         src: url("/font/Ogg-Light.woff2") format("woff2");
         font-weight: 300;
         font-style: normal;
-        font-display: optional;
+        font-display: swap;
       }
       @font-face {
         font-family: "Ogg";
         src: url("/font/Ogg-Regular.woff2") format("woff2");
         font-weight: 400;
         font-style: normal;
-        font-display: optional;
+        font-display: swap;
       }
       @font-face {
         font-family: "Ogg";
         src: url("/font/Ogg-Medium.woff2") format("woff2");
         font-weight: 500;
         font-style: normal;
-        font-display: optional;
+        font-display: swap;
       }
       @font-face {
         font-family: "Ogg";
         src: url("/font/Ogg-Bold.woff2") format("woff2");
         font-weight: 700;
         font-style: normal;
-        font-display: optional;
+        font-display: swap;
       }
 
       html {
